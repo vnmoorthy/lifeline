@@ -162,7 +162,7 @@ try{if(localStorage.getItem('lifeline-large')==='1'){document.body.classList.add
 $('bigtext').onclick=()=>{const on=document.body.classList.toggle('large');$('bigtext').setAttribute('aria-pressed',on?'true':'false');try{localStorage.setItem('lifeline-large',on?'1':'0');}catch(e){}};
 
 // --- speech (with speaking indicator) ---
-function setSpeaking(on){$('speakind').classList.toggle('on',on);const b=$('repeat');if(b)b.innerHTML=on?'⏹ Stop':'🔊 Repeat steps';}
+function setSpeaking(on){$('speakind').classList.toggle('on',on);const b=$('repeat');if(b){b.innerHTML=on?'⏹ Stop':'🔊 Repeat steps';b.setAttribute('aria-pressed',on?'true':'false');}}
 function speakRaw(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=1.04;u.onstart=()=>setSpeaking(true);u.onend=()=>setSpeaking(false);u.onerror=()=>setSpeaking(false);speechSynthesis.speak(u);}catch(e){}}
 function speak(t){lastSpeak=t;speakRaw(t);}
 function stopSpeech(){try{speechSynthesis.cancel();}catch(e){}setSpeaking(false);}
@@ -228,10 +228,11 @@ async function ask(text){
       : `verified after ${cands.length} ${cands.length>1?'tries':'try'} · ${r.denoising_steps} denoising steps · ${r.latency_ms}ms`;
     if(!REDUCED)await sleep(150);
     $('stepsCard').style.display='block';$('stepsH').textContent=r.protocol+' — what to do now';
-    renderSteps(r.answer);
+    const answerArr=Array.isArray(r.answer)?r.answer:[String(r.answer||'Call 911 now.')];
+    renderSteps(answerArr);
     $('actions').style.display='flex';
-    speak(r.protocol+'. '+r.answer.join('. '));
-    announce(r.protocol+'. '+r.answer.join('. '));
+    speak(r.protocol+'. '+answerArr.join('. '));
+    announce(r.protocol+'. '+answerArr.join('. '));
   }finally{
     busy=false;$('go').disabled=false;$('mic').disabled=false;
   }
@@ -245,7 +246,7 @@ function renderSteps(arr){
     row.setAttribute('role','button');row.tabIndex=0;
     row.setAttribute('aria-label','Step '+(i+1)+': '+s+'. Tap to hear again.');
     row.innerHTML=`<div class="num" aria-hidden="true">${i+1}</div><div class="txt">${s}</div>`;
-    const say=()=>{speakRaw(s);row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),700);};
+    const say=()=>{speakRaw(s);announce('Step '+(i+1));row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),700);};
     row.onclick=say;
     row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();say();}};
     box.appendChild(row);
