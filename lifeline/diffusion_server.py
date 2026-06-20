@@ -72,7 +72,11 @@ def answer(transcript: str) -> dict:
     t0 = time.time()
     cands, chosen = [], None
     for _ in range(MAX_N):
-        txt = gen_one(transcript, STEPS)
+        try:
+            txt = gen_one(transcript, STEPS)
+        except Exception:  # noqa: BLE001  (timeout/gen error -> failed candidate; fall back to canon)
+            cands.append({"ok": False, "preview": "generation timed out"})
+            continue
         ok = verify(txt, key)
         first = next((ln.strip(" -*0123456789.") for ln in txt.splitlines() if ln.strip()), "")
         cands.append({"ok": ok, "preview": first[:80]})

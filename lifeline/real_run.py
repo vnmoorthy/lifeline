@@ -31,7 +31,8 @@ PROMPT = ("Emergency: {q}. Give the numbered first-aid steps a bystander should 
 PROTO = {
     "cpr": {"require": [
         ["911", "emergency service", "emergency number", "999", "112", "call for help", "call ems"],
-        ["compress", "compression", "center of the chest", "center of chest", "centre of chest", "middle of the chest", "push hard"],
+        ["compress", "compression", "center of the chest", "center of chest", "centre of chest",
+         "middle of the chest", "push hard", "pump", "push on the chest", "push forcefully"],
         ["100-120", "100 to 120", "100–120", "per minute"]],
         "forbid": ["give them water", "give water", "induce vomiting", "slap them awake"]},
     "choke": {"require": [
@@ -120,7 +121,8 @@ PROTO = {
     "nosebleed": {"require": [
         ["lean forward", "tip forward", "lean slightly forward", "tilt forward"],
         ["pinch the soft part", "pinch the soft", "squeeze the soft part", "pinch the soft portion",
-         "pinch the fleshy part", "pinch your nostrils", "pinch the nostrils", "pinch the nose"],
+         "pinch the fleshy part", "pinch your nostrils", "pinch the nostrils", "pinch the nose",
+         "pinch nose", "pinch nostrils", "pinch the bridge"],
         ["10 to 15 minutes", "10-15 minutes", "ten to fifteen minutes", "at least 10 minutes", "10 minutes"],
         ["call 911", "seek emergency", "seek medical", "emergency services", "get medical help", "seek help"]],
         "forbid": ["tilt your head back", "tilt the head back", "lean back", "head back", "swallow the blood"]},
@@ -132,6 +134,15 @@ PROTO = {
         "forbid": ["realign the bone", "straighten the limb", "push the bone back", "apply ice directly to the skin",
                    "let them walk it off"]},
 }
+
+# Broaden every "call emergency services" group so correct model phrasings don't false-fallback.
+_EMERGENCY_SYNS = ["911", "call 911", "dial 911", "phone 911", "ring 911", "call emergency",
+                   "call emergency services", "emergency services", "emergency number", "call for help",
+                   "call an ambulance", "ring for help", "999", "112"]
+for _p in PROTO.values():
+    for _grp in _p["require"]:
+        if any(("911" in s or "emergency" in s) for s in _grp):
+            _grp.extend(s for s in _EMERGENCY_SYNS if s not in _grp)
 
 SCENARIOS = [
     {"id": "cpr",        "proto": "cpr",   "q": "someone collapsed and is not breathing"},

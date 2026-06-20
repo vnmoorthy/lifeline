@@ -95,7 +95,7 @@ input:focus{outline:none;border-color:var(--accent)}
  <div class="chips" id="chips" role="list" aria-label="Example emergencies"></div>
 </main>
 
-<div class="you" id="you" aria-hidden="true"></div>
+<div class="you" id="you"></div>
 <section class="stage" id="stage" aria-label="Guidance">
  <div class="statusbar" id="status"></div>
  <div class="engine" role="status" aria-live="polite">
@@ -124,68 +124,74 @@ const EXAMPLES=["he collapsed and isn't breathing","my dad is choking on food","
 $('chips').innerHTML=EXAMPLES.map(e=>`<button class="chip" role="listitem">${e}</button>`).join('');
 document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{$('txt').value=c.textContent;ask(c.textContent);});
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-let lastSpeak='';
+let lastSpeak='';let busy=false;
 function speak(t){lastSpeak=t;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=1.04;speechSynthesis.speak(u);}catch(e){}}
 function announce(t){$('live').textContent=t;}
 
 async function ask(text){
-  text=(text||'').trim(); if(!text)return;
-  try{speechSynthesis.cancel();}catch(e){}
-  $('you').innerHTML='“ <b>'+text+'</b> ”';
-  $('stage').style.display='block';
-  $('actions').style.display='none';
-  $('status').innerHTML='<span class="pill">recognizing…</span>';
-  $('elbl').textContent='Generating verified guidance…';$('ecount').textContent='';
-  $('dots').innerHTML='';$('shim').classList.add('on');
-  $('stepsCard').style.display='none';$('steps').innerHTML='';
-  announce('Working on it.');
-  let r;
+  text=(text||'').trim();
+  if(!text){announce('Please describe the emergency first.');return;}
+  if(busy)return; busy=true;
+  $('txt').blur();$('go').disabled=true;$('mic').disabled=true;
   try{
+    try{speechSynthesis.cancel();}catch(e){}
+    $('you').innerHTML='“ <b>'+text+'</b> ”';
+    $('stage').style.display='block';
+    $('actions').style.display='none';
+    $('status').innerHTML='<span class="pill">recognizing…</span>';
+    $('elbl').textContent='Generating verified guidance…';$('ecount').textContent='';
+    $('dots').innerHTML='';$('shim').classList.add('on');
+    $('stepsCard').style.display='none';$('steps').innerHTML='';
+    announce('Working on it.');
+    let r;
     const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),30000);
-    r=await(await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text}),signal:ctrl.signal})).json();
-    clearTimeout(to);
-  }catch(e){
-    $('shim').classList.remove('on');
-    $('status').innerHTML='<span class="pill critical">can\'t reach assistant</span>';
-    $('stepsCard').style.display='block';$('stepsH').textContent='What to do';
-    renderSteps(['Call 911 now and describe what you see.']);
-    $('actions').style.display='flex';announce('Connection problem. Call 911 now.');return;
-  }
+    try{
+      r=await(await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text}),signal:ctrl.signal})).json();
+    }catch(e){
+      $('shim').classList.remove('on');
+      $('status').innerHTML='<span class="pill critical">Network unavailable — call 911</span>';
+      $('stepsCard').style.display='block';$('stepsH').textContent='What to do';
+      renderSteps(['Call 911 now and describe what you see.']);
+      $('actions').style.display='flex';announce('Network unavailable. Call 911 now.');return;
+    }finally{clearTimeout(to);}
 
-  if(!r.recognized){
-    $('shim').classList.remove('on');
-    $('status').innerHTML='<span class="pill critical">couldn\'t identify — call 911</span>';
-    $('stepsCard').style.display='block';$('stepsH').textContent='What to do';
-    const msg=r.spoken||'Call 911 now and describe what you see.';
-    renderSteps([msg]);speak(msg);$('actions').style.display='flex';announce(msg);return;
-  }
-  $('status').innerHTML=
-    `<span class="pill proto">${r.protocol}</span>`+
-    `<span class="pill ${r.regime}">${r.regime}</span>`+
-    `<span class="pill ${r.fallback?'fallback':'verified'}">${r.fallback?'✓ official protocol':'✓ model-verified'}</span>`;
-  const cands=r.candidates&&r.candidates.length?r.candidates:[{ok:true}];
-  if(REDUCED){
-    cands.forEach(c=>{const d=document.createElement('div');d.className='dot in '+(c.ok?'ok':'bad');$('dots').appendChild(d);});
-    $('ecount').textContent=cands.length+(cands.length>1?' tries':' try');
-  }else{
-    for(let i=0;i<cands.length;i++){
-      const d=document.createElement('div');d.className='dot';$('dots').appendChild(d);
-      requestAnimationFrame(()=>d.classList.add('in'));
-      await sleep(90);
-      d.classList.add(cands[i].ok?'ok':'bad');
-      $('ecount').textContent=(i+1)+(i+1>1?' tries':' try');
+    if(!r.recognized){
+      $('shim').classList.remove('on');
+      $('status').innerHTML='<span class="pill critical">Unrecognized emergency — call 911</span>';
+      $('stepsCard').style.display='block';$('stepsH').textContent='What to do';
+      const msg=r.spoken||'Call 911 now and describe what you see.';
+      renderSteps([msg]);speak(msg);$('actions').style.display='flex';announce(msg);return;
     }
+    $('status').innerHTML=
+      `<span class="pill proto">${r.protocol}</span>`+
+      `<span class="pill ${r.regime}">${r.regime}</span>`+
+      `<span class="pill ${r.fallback?'fallback':'verified'}">${r.fallback?'⚠ Fallback: official protocol':'✓ model-verified'}</span>`;
+    const cands=r.candidates&&r.candidates.length?r.candidates:[{ok:true}];
+    if(REDUCED){
+      cands.forEach(c=>{const d=document.createElement('div');d.className='dot in '+(c.ok?'ok':'bad');$('dots').appendChild(d);});
+      $('ecount').textContent=cands.length+(cands.length>1?' tries':' try');
+    }else{
+      for(let i=0;i<cands.length;i++){
+        const d=document.createElement('div');d.className='dot';$('dots').appendChild(d);
+        requestAnimationFrame(()=>d.classList.add('in'));
+        await sleep(90);
+        d.classList.add(cands[i].ok?'ok':'bad');
+        $('ecount').textContent=(i+1)+(i+1>1?' tries':' try');
+      }
+    }
+    $('shim').classList.remove('on');
+    $('elbl').textContent=r.fallback
+      ? 'Model could not verify — showing official protocol steps'
+      : `verified after ${cands.length} ${cands.length>1?'tries':'try'} · ${r.denoising_steps} denoising steps · ${r.latency_ms}ms`;
+    if(!REDUCED)await sleep(150);
+    $('stepsCard').style.display='block';$('stepsH').textContent=r.protocol+' — what to do now';
+    renderSteps(r.answer);
+    $('actions').style.display='flex';
+    speak(r.protocol+'. '+r.answer.join('. '));
+    announce(r.protocol+'. '+r.answer.join('. '));
+  }finally{
+    busy=false;$('go').disabled=false;$('mic').disabled=false;
   }
-  $('shim').classList.remove('on');
-  $('elbl').textContent=r.fallback
-    ? `${cands.length} tries didn't verify → using the official protocol`
-    : `verified after ${cands.length} ${cands.length>1?'tries':'try'} · ${r.denoising_steps} denoising steps · ${r.latency_ms}ms`;
-  if(!REDUCED)await sleep(150);
-  $('stepsCard').style.display='block';$('stepsH').textContent=r.protocol+' — what to do now';
-  renderSteps(r.answer);
-  $('actions').style.display='flex';
-  speak(r.protocol+'. '+r.answer.join('. '));
-  announce(r.protocol+'. '+r.answer.join('. '));
 }
 function renderSteps(arr){
   const box=$('steps');box.innerHTML='';
@@ -210,7 +216,7 @@ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(SR){const rec=new SR();rec.lang='en-US';rec.interimResults=false;const m=$('mic');
  m.onclick=()=>{try{rec.start();m.classList.add('listening');$('miclbl').textContent='listening…';announce('Listening.');}catch(e){}};
  rec.onresult=e=>ask(e.results[0][0].transcript);
- rec.onerror=()=>{m.classList.remove('listening');$('miclbl').textContent='Tap & speak';};
+ rec.onerror=()=>{m.classList.remove('listening');$('miclbl').textContent='Tap & speak';announce('Speech recognition failed. Please type instead.');};
  rec.onend=()=>{m.classList.remove('listening');$('miclbl').textContent='Tap & speak';};
 }else{$('miclbl').textContent='type below';$('mic').setAttribute('aria-hidden','true');$('mic').style.opacity=.5;}
 </script></body></html>

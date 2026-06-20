@@ -11,8 +11,8 @@ from __future__ import annotations
 # Short keyword cues (lowercase) — substring-matched against the transcript.
 CUES = {
     "cpr":        ["cardiac", "cardiac arrest", "chest compressions", "heart stopped", "no pulse"],
-    "choke":      ["choking", "choke", "can't breathe", "cant breathe", "something stuck in", "object stuck",
-                   "stuck in his throat", "stuck in her throat", "stuck in their throat", "lodged in"],
+    "choke":      ["choking", "choke", "something stuck in", "object stuck", "stuck in his throat",
+                   "stuck in her throat", "stuck in their throat", "lodged in", "can't swallow"],
     "bleed":      ["bleeding", "blood", "cut", "wound", "gushing", "spurting", "hemorrhage", "laceration"],
     "od":         ["overdose", "overdosed", "blue lips", "lips are blue", "lips turning blue", "pinpoint", "opioid", "opioids"],
     "burn":       ["burn", "burned", "burnt", "scald", "boiling water", "steam", "hot water", "caught fire", "on fire"],
@@ -143,30 +143,51 @@ DROWN_CUES = ["drowning", "drowned", "out of the pool", "pulled out of the pool"
 ARREST = ["not breathing", "isn't breathing", "isnt breathing", "stopped breathing", "no pulse"]
 DOWN = ["unconscious", "unresponsive", "passed out", "collapsed", "won't wake", "wont wake",
         "not responding", "won't respond", "wont respond", "blacked out", "went limp", "fainted"]
+BREATHE_TROUBLE = ["can't breathe", "cant breathe", "can't breath", "struggling to breathe",
+                   "trouble breathing", "barely breathe", "hard to breathe"]
+CHOKE_OBJECT = ["chok", "stuck", "lodged", "object", "swallowed something"]
+
+# Negation handling: a cue only counts if it is NOT negated just before it ("no chest pain",
+# "he's not choking" must not route to heart_attack / choke). A short 12-char window is used so a
+# far-away contraction ("can't get him up, he's not breathing") does NOT wrongly cancel an arrest cue.
+_NEG = ("no ", "not ", "n't", "never ", "without ", "isn't", "aren't")
+
+
+def _present(t: str, cue: str) -> bool:
+    """True if cue appears with no negation immediately before it."""
+    i = t.find(cue)
+    while i != -1:
+        if not any(n in t[max(0, i - 12):i] for n in _NEG):
+            return True
+        i = t.find(cue, i + 1)
+    return False
 
 
 def recognize(t: str):
     t = (t or "").lower()
     # 1) Specific supersets that already include CPR/rescue breathing must win over generic arrest.
-    if any(c in t for c in OD_HARD):
+    if any(_present(t, c) for c in OD_HARD):
         return "od"
-    if any(c in t for c in DROWN_CUES):
+    if any(_present(t, c) for c in DROWN_CUES):
         return "drown"
     # 2) Nosebleed: nose + blood, before generic "bleeding" routes to severe-bleed.
     if "nose" in t and ("bleed" in t or "blood" in t):
         return "nosebleed"
-    # 3) Unconscious choking -> CPR (compressions can clear the airway).
-    if "chok" in t and any(d in t for d in DOWN):
+    # 3) Breathing difficulty WITH a choking object -> choke. (Bare dyspnea is ambiguous — asthma,
+    #    panic, cardiac, anaphylaxis — so it is left to scoring / the 911 fallback, never forced to CPR.)
+    if any(_present(t, c) for c in BREATHE_TROUBLE) and any(o in t for o in CHOKE_OBJECT):
+        return "choke"
+    # 4) Unconscious choking -> CPR (compressions can clear the airway).
+    if _present(t, "chok") and any(d in t for d in DOWN):
         return "cpr"
-    # 4) Explicit respiratory/cardiac arrest -> CPR.
-    if any(a in t for a in ARREST):
+    # 5) Explicit respiratory/cardiac arrest -> CPR.
+    if any(_present(t, a) for a in ARREST):
         return "cpr"
-    # 5) Highest-scoring specific protocol.
-    scores = {k: sum(1 for c in CUES[k] if c in t) for k in CUES}
+    # 6) Highest-scoring specific protocol.
+    scores = {k: sum(1 for c in CUES[k] if _present(t, c)) for k in CUES}
     best = max(scores, key=lambda k: scores[k])
     if scores[best] > 0:
         return best
-    # 6) Someone is down with no identified cause -> default to the CPR pathway (check breathing).
-    if any(d in t for d in DOWN):
-        return "cpr"
+    # 7) Down with no identified cause and no arrest sign -> None, so the UI says "call 911 and
+    #    describe what you see" rather than guessing CPR on someone who may be breathing.
     return None

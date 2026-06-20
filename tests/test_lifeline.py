@@ -29,6 +29,23 @@ def test_recognition():
         check(recognize(junk) is None, f"junk should be None: {junk!r} -> {recognize(junk)}")
 
 
+def test_recognition_adversarial():
+    print("recognition: negation, ambiguous breathing, and unexplained collapse (critic findings)")
+    # negation must not trigger a protocol
+    check(recognize("no chest pain, just a bit winded") != "heart_attack", "'no chest pain' -> heart_attack")
+    check(recognize("he's not choking, he's totally fine") != "choke", "'not choking' -> choke")
+    check(recognize("there's no bleeding now") != "bleed", "'no bleeding' -> bleed")
+    # bare breathing difficulty is ambiguous -> never force choke or CPR
+    check(recognize("i can't breathe") != "choke", "'i can't breathe' -> choke")
+    # but breathing difficulty WITH a choking object -> choke
+    check(recognize("something is stuck in his throat and he can't breathe") == "choke", "object+can't breathe should be choke")
+    # unexplained collapse with no arrest sign -> None (UI says call 911), not a wrong CPR
+    check(recognize("he fainted at the gym") is None, "'fainted' should be None, not CPR")
+    # arrest still routes to CPR even when a far-away contraction is in the sentence
+    check(recognize("i can't get him to wake up, he's not breathing") == "cpr", "far contraction wrongly cancelled arrest")
+    check(recognize("he collapsed and isn't breathing") == "cpr", "headline arrest case must be CPR")
+
+
 def test_fallback_invariant():
     print("safety invariant: every canonical fallback passes its own verifier")
     for k in CANON:
@@ -64,7 +81,7 @@ def test_negation_safety():
 
 
 def main():
-    for fn in (test_recognition, test_fallback_invariant, test_key_consistency, test_negation_safety):
+    for fn in (test_recognition, test_recognition_adversarial, test_fallback_invariant, test_key_consistency, test_negation_safety):
         fn()
     n = len(SCENARIOS)
     if _fails:
