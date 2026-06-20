@@ -33,8 +33,8 @@ PROTO = {
         ["911", "emergency service", "emergency number", "999", "112", "call for help", "call ems"],
         ["compress", "compression", "center of the chest", "center of chest", "centre of chest",
          "middle of the chest", "push hard", "pump", "push on the chest", "push forcefully"],
-        ["100-120", "100 to 120", "100–120", "per minute"],
-        ["2 inches", "2 inch", "two inches", "5 cm", "5cm", "at least 2 inches", "deep"]],
+        ["100-120", "100 to 120", "100–120", "100-120 per minute", "100 to 120 per minute"],  # require the RATE, not bare "per minute"
+        ["2 inches", "2 inch", "two inches", "5 cm", "5cm", "at least 2 inches"]],  # require the DEPTH, not bare "deep"
         "forbid": ["give them water", "give water", "induce vomiting", "slap them awake"]},
     "choke": {"require": [
         ["911", "emergency service", "999", "112", "call for help"],
@@ -46,7 +46,9 @@ PROTO = {
         ["direct pressure", "apply pressure", "press on the wound", "firm pressure", "press firmly",
          "apply firm", "pressure to the wound", "pressure on the wound", "applying pressure",
          "press hard on the wound"]],  # direct pressure is PRIMARY; a tourniquet-only answer must fall back
-        "forbid": ["remove the soaked", "tourniquet around the neck", "tourniquet on the neck"]},
+        "forbid": ["remove the soaked", "remove soaked", "remove the cloth", "remove the dressing",
+                   "remove the bandage", "take off the cloth", "take the cloth off", "lift the cloth",
+                   "peel the cloth", "tourniquet around the neck", "tourniquet on the neck"]},
     "od": {"require": [
         ["911", "emergency service", "999", "112", "call for help"],
         ["naloxone", "narcan"],

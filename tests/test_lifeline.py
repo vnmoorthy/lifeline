@@ -129,6 +129,9 @@ def test_negation_safety():
     # ...complete versions still verify
     check(verify("Call 911. Push hard in the center of the chest at 100-120 per minute, about 2 inches deep.", "cpr"), "complete CPR answer rejected")
     check(verify("Call 911. Give naloxone. If not breathing, start rescue breaths or CPR.", "od"), "complete OD answer rejected")
+    # CPR with WRONG numbers (50/min, 1 inch) must not verify; cloth-removal advice must be forbidden
+    check(not verify("Call 911. Push on the chest 50 times per minute, 1 inch deep.", "cpr"), "CPR with wrong rate/depth wrongly verified")
+    check(not verify("Call 911. Apply direct pressure, then remove the cloth to check the bleeding.", "bleed"), "bleed 'remove the cloth' wrongly verified")
 
 
 def main():
