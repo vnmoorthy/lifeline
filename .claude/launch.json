@@ -24,6 +24,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8757", "--directory", "dashboard_lifeline"],
       "port": 8757
+    },
+    {
+      "name": "lifeline-voice",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "lifeline.server"],
+      "port": 8080
     }
   ]
 }
