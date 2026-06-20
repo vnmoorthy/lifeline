@@ -153,6 +153,14 @@ body.large .hero h1{font-size:28px}body.large .act{font-size:16px}body.large .nu
  .dot,.step{transition:none;opacity:1;transform:none}.track.on::after{display:none}.fill{transition:none}
  .listen{transition:opacity .01s;transform:none}
 }
+.deskhint{display:none}
+@media (min-width:760px){
+ html,body{overflow:auto;height:auto}
+ body{display:flex;align-items:center;justify-content:center;min-height:100dvh;
+  background:radial-gradient(1100px 700px at 50% -5%,#0e1622,#070a0e 62%);padding:30px 16px 46px}
+ .app{width:392px;height:min(86dvh,800px);border:1px solid #2a3a4d;border-radius:34px;box-shadow:0 26px 70px rgba(0,0,0,.55)}
+ .deskhint{display:block;position:fixed;left:0;right:0;bottom:14px;text-align:center;color:var(--dim);font-size:12.5px}
+}
 </style></head><body>
 <a class="sr" href="#main">Skip to content</a>
 <div class="app">
@@ -214,6 +222,7 @@ body.large .hero h1{font-size:28px}body.large .act{font-size:16px}body.large .nu
  <div class="pt" id="partial"></div>
 </div>
 
+<p class="deskhint">Mobile-first demo — tap a chip or the mic. Best experienced on a phone.</p>
 <div class="sr" id="live" aria-live="assertive"></div>
 </div>
 <script>
