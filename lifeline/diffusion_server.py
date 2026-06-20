@@ -26,7 +26,7 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE)
 from lifeline.real_run import PROMPT, verify          # noqa: E402  (concept-group verifier)
 from lifeline.triage import recognize, CANON, PROTO_NAME  # noqa: E402
-from lifeline.ui_page import PAGE                      # noqa: E402
+from lifeline.ui_page import PAGE, MANIFEST, ICON_SVG, SW_JS  # noqa: E402
 
 MODEL = os.environ.get("LIFELINE_MODEL", "unsloth/diffusiongemma-26B-A4B-it")
 STEPS = int(os.environ.get("STEPS", "16"))   # denoising depth (peak quality/latency point)
@@ -106,7 +106,17 @@ class H(BaseHTTPRequestHandler):
         self.wfile.write(b)
 
     def do_GET(self):
-        self._send(200, PAGE, "text/html; charset=utf-8") if self.path in ("/", "/index.html") else self._send(404, "nf", "text/plain")
+        p = self.path
+        if p in ("/", "/index.html"):
+            self._send(200, PAGE, "text/html; charset=utf-8")
+        elif p == "/manifest.webmanifest":
+            self._send(200, MANIFEST, "application/manifest+json")
+        elif p == "/icon.svg":
+            self._send(200, ICON_SVG, "image/svg+xml")
+        elif p == "/sw.js":
+            self._send(200, SW_JS, "text/javascript")
+        else:
+            self._send(404, "nf", "text/plain")
 
     def do_POST(self):
         if self.path != "/ask":

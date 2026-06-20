@@ -1,46 +1,76 @@
 {
   "project": "Lifeline",
-  "note": "UX/product-depth stories for the Ralph loop. Additive, GPU-free, no collision with the Devin eval-suite task. One story per loop; mark passes:true when validated.",
+  "note": "Stories for the Ralph loop. Priorities 1-5 (UX depth) are done. 6-10 are the 'top-class native mobile app' UI/UX initiative. One story per loop; mark passes:true when validated (./check.sh + preview).",
   "stories": [
     {
       "id": "speaking-indicator",
       "priority": 1,
       "passes": true,
-      "title": "Speaking indicator + Stop control",
-      "detail": "While the steps are being spoken aloud, show an animated 'Speaking\u2026' indicator in the steps header and turn the Repeat button into a Stop control that cancels speech. Clear it on utterance end. Hands-free clarity so the user knows audio is playing and can stop it.",
-      "acceptance": "speak() toggles a .speaking state via utterance onstart/onend; an aria-hidden animated indicator shows while speaking; Repeat<->Stop toggles; check.sh green; preview confirms."
+      "title": "Speaking indicator + Stop control"
     },
     {
       "id": "tap-step-replay",
       "priority": 2,
       "passes": true,
-      "title": "Tap a step to replay just that step",
-      "detail": "Each first-aid step card is tappable/focusable; activating it re-speaks only that step and briefly highlights it. Lets a hands-busy user re-hear one instruction without replaying everything.",
-      "acceptance": "steps are role=button, tabindex=0, keyboard-activatable, aria-label includes the step; click/Enter speaks that step; a hint line tells users they can tap a step; check.sh green; preview confirms."
+      "title": "Tap a step to replay just that step"
     },
     {
       "id": "large-text-toggle",
       "priority": 3,
       "passes": true,
-      "title": "Large-text / high-contrast accessibility toggle",
-      "detail": "A small persistent toggle (localStorage) that bumps step + body font sizes for elderly/panic/low-vision use. Remembered across reloads.",
-      "acceptance": "toggle in header sets a body.large class, persisted in localStorage and restored on load; larger type in .large mode; accessible button (aria-pressed); check.sh green; preview confirms both modes."
+      "title": "Large-text accessibility toggle"
     },
     {
       "id": "network-retry",
       "priority": 4,
       "passes": true,
-      "title": "Retry on network error",
-      "detail": "When /ask fails (network/timeout), show a clear 'Try again' button that re-runs the last query, alongside the call-911 fallback. Track the last query.",
-      "acceptance": "last query stored; network-error state shows a working 'Try again' that re-issues ask(lastQuery); existing safe-fallback messaging preserved; check.sh green; preview confirms."
+      "title": "Retry on network error"
     },
     {
       "id": "compute-microcopy",
       "priority": 5,
       "passes": true,
-      "title": "Clearer inference-time-compute microcopy",
-      "detail": "Make the engine panel narrate the inference-time-compute story to a non-expert/judge: while generating, 'Drafting answers and checking each against the official protocol\u2026'; add a one-line legend for the candidate cells (green = passed the protocol check). Keeps the crisp verified result line.",
-      "acceptance": "clearer elbl during generation; a small cell legend; verified/fallback result lines unchanged in meaning; check.sh green; preview confirms."
+      "title": "Clearer inference-time-compute microcopy"
+    },
+    {
+      "id": "native-app-shell",
+      "priority": 6,
+      "passes": true,
+      "title": "Native app shell: screens + transitions + bottom thumb dock",
+      "detail": "Restructure from a scrolling web page into app SCREENS (home + result) with smooth push/fade transitions, fixed app bars, safe-area insets, and a bottom thumb-reachable dock for the primary actions. Feels like navigating a native app, not scrolling a page.",
+      "acceptance": "100dvh app container; #homeScreen/#resultScreen swap via showScreen() with a transition; app bars; dock honors env(safe-area-inset-bottom); all existing ids + the /ask flow preserved; check.sh green; preview confirms home->result->back."
+    },
+    {
+      "id": "immersive-listening",
+      "priority": 7,
+      "passes": true,
+      "title": "Immersive listening overlay with live waveform",
+      "detail": "Full-screen 'Listening\u2026' overlay (like Siri/Assistant) when the mic is active: animated waveform bars + live partial transcript + a cancel control. Uses SpeechRecognition interim results.",
+      "acceptance": "#listen overlay shows on mic start with an animated waveform and #partial interim text; cancel + auto-hide on result/end/error; reduced-motion stills the waveform; check.sh green; preview confirms."
+    },
+    {
+      "id": "crisp-icons",
+      "priority": 8,
+      "passes": true,
+      "title": "Crisp inline SVG icon set (replace emoji)",
+      "detail": "Replace emoji (mic/phone/speaker/stop/restart/back/close/text-size) with a consistent inline-SVG stroke icon set for a premium native look that renders identically across devices.",
+      "acceptance": "no emoji used for controls; SVG icons inherit currentColor + size; icon-only buttons keep aria-label; check.sh green; preview confirms."
+    },
+    {
+      "id": "motion-haptics",
+      "priority": 9,
+      "passes": true,
+      "title": "Spring motion, press states, and haptics",
+      "detail": "Spring/cubic-bezier easings on transitions, scale press-states on every tappable, navigator.vibrate haptics on mic-start / verified / step-tap / error, and a loading shimmer. All gated by prefers-reduced-motion.",
+      "acceptance": "press states on buttons/cards; buzz() via navigator.vibrate at key moments (guarded); reduced-motion disables animations + transforms; check.sh green; preview confirms."
+    },
+    {
+      "id": "pwa-installable",
+      "priority": 10,
+      "passes": true,
+      "title": "Installable PWA with offline app shell",
+      "detail": "Make it a real installable app: web manifest (standalone, theme color, icon), Apple meta tags, and a service worker that caches the app shell so it opens offline (the /ask network-error path already falls back to 'call 911'). Served by both diffusion_server and mock_ui.",
+      "acceptance": "ui_page exports MANIFEST/ICON_SVG/SW_JS; both servers serve /manifest.webmanifest, /icon.svg, /sw.js; <head> has manifest+apple meta; SW registers and caches '/'; check.sh green; curl of the new routes returns 200."
     }
   ]
 }

@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE)
 from lifeline.triage import recognize, CANON, PROTO_NAME  # noqa: E402
-from lifeline.ui_page import PAGE  # noqa: E402
+from lifeline.ui_page import PAGE, MANIFEST, ICON_SVG, SW_JS  # noqa: E402
 
 PORT = int(os.environ.get("LIFELINE_PORT", "8090"))
 # Illustrative per-case difficulty for the UI preview only (how many tries the effort-manager
@@ -53,7 +53,17 @@ class H(BaseHTTPRequestHandler):
         self.wfile.write(b)
 
     def do_GET(self):
-        self._send(200, PAGE, "text/html; charset=utf-8") if self.path in ("/", "/index.html") else self._send(404, "nf", "text/plain")
+        p = self.path
+        if p in ("/", "/index.html"):
+            self._send(200, PAGE, "text/html; charset=utf-8")
+        elif p == "/manifest.webmanifest":
+            self._send(200, MANIFEST, "application/manifest+json")
+        elif p == "/icon.svg":
+            self._send(200, ICON_SVG, "image/svg+xml")
+        elif p == "/sw.js":
+            self._send(200, SW_JS, "text/javascript")
+        else:
+            self._send(404, "nf", "text/plain")
 
     def do_POST(self):
         if self.path != "/ask":
