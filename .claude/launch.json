@@ -18,6 +18,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8755", "--directory", ".preview_stage"],
       "port": 8755
+    },
+    {
+      "name": "lifeline-dashboard",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8757", "--directory", "dashboard_lifeline"],
+      "port": 8757
     }
   ]
 }
