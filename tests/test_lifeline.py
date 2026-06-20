@@ -69,6 +69,10 @@ def test_recognition_adversarial():
     check(recognize("blood sugar is really low i feel dizzy and weak") == "hypoglycemia", "'blood sugar' misrouted to bleed")
     # cold exposure disambiguates 'slurred speech' to hypothermia, not stroke
     check(recognize("he was lost in the snow for hours shivering with slurred speech") == "hypothermia", "cold+slurred misrouted to stroke")
+    check(recognize("pulled from the pool, not breathing") == "drown", "drowning 'pulled from the pool' misrouted")
+    check(recognize("he's burning up and not making sense") == "heatstroke", "'burning up' misrouted to burn")
+    check(recognize("got heatstroke from being outside too long") == "heatstroke", "'heatstroke' misrouted to stroke")
+    check(recognize("epistaxis, won't stop bleeding") == "nosebleed", "'epistaxis' misrouted to bleed")
 
 
 def test_fallback_invariant():
@@ -118,6 +122,13 @@ def test_negation_safety():
     check(verify("Call 911. Give 5 back blows between the shoulder blades, then 5 abdominal thrusts (Heimlich).", "choke"), "complete choke answer rejected")
     check(verify("Call 911. Apply firm direct pressure to the wound with a clean cloth.", "bleed"), "complete bleed answer rejected")
     check(verify("Cool the burn under cool running water for 20 minutes, then cover loosely with a clean dressing.", "burn"), "complete burn answer rejected")
+    # CPR without depth, bleed tourniquet-without-pressure, OD recovery-without-breathing must fall back
+    check(not verify("Call 911. Push hard in the center of the chest at 100-120 per minute.", "cpr"), "CPR without depth wrongly verified")
+    check(not verify("Call 911. Apply a tourniquet above the wound.", "bleed"), "bleed tourniquet-only (no direct pressure) wrongly verified")
+    check(not verify("Call 911. Give naloxone. Place them in the recovery position.", "od"), "OD without breathing check wrongly verified")
+    # ...complete versions still verify
+    check(verify("Call 911. Push hard in the center of the chest at 100-120 per minute, about 2 inches deep.", "cpr"), "complete CPR answer rejected")
+    check(verify("Call 911. Give naloxone. If not breathing, start rescue breaths or CPR.", "od"), "complete OD answer rejected")
 
 
 def main():

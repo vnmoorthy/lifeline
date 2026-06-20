@@ -145,9 +145,13 @@ OD_HARD = ["opioid", "opioids", "fentanyl", "heroin", "naloxone", "narcan", "pin
 # the OD protocol (naloxone + rescue breaths + CPR + recovery position) is the correct superset, and
 # empiric naloxone is harmless if it turns out non-opioid. Conscious ingestion stays poison/scoring.
 OD_SOFT = ["overdose", "overdosed", "took too much", "took something", "od'd"]
-DROWN_CUES = ["drowning", "drowned", "out of the pool", "pulled out of the pool", "out of the water",
-              "fell in the pool", "fell in the water", "face down in the water", "out of the lake",
-              "out of the ocean", "pulled from the water"]
+DROWN_CUES = ["drowning", "drowned", "out of the pool", "pulled out of the pool", "pulled from the pool",
+              "from the pool", "out of the water", "fell in the pool", "fell in the water",
+              "face down in the water", "out of the lake", "from the lake", "out of the ocean",
+              "from the ocean", "pulled from the water"]
+# Strong heat signals (route to heatstroke before generic scoring — 'burning up' contains 'burn',
+# and 'heatstroke' contains 'stroke', so both would otherwise mis-score).
+HEAT_STRONG = ["heatstroke", "heat stroke", "heat exhaustion", "burning up", "overheated", "sunstroke"]
 # Cold-exposure context: 'slurred speech' is both a stroke and a hypothermia sign — a clear cold
 # source disambiguates to hypothermia (guarded by 'not arrest', so a not-breathing victim pulled
 # from freezing water still goes down the CPR/arrest path).
@@ -217,8 +221,10 @@ def recognize(t: str):
         return "drown"
     if any(c in t for c in COLD_EXPOSURE) and not any(_present(t, a) for a in ARREST):
         return "hypothermia"
-    # 2) Nosebleed: nose + blood, before generic "bleeding" routes to severe-bleed.
-    if "nose" in t and ("bleed" in t or "blood" in t):
+    if any(c in t for c in HEAT_STRONG):
+        return "heatstroke"
+    # 2) Nosebleed: nose + blood (or the medical term), before generic "bleeding" routes to severe-bleed.
+    if "epistaxis" in t or "nosebleed" in t or ("nose" in t and ("bleed" in t or "blood" in t)):
         return "nosebleed"
     # 3) Breathing difficulty WITH a choking object -> choke. (Bare dyspnea is ambiguous — asthma,
     #    panic, cardiac, anaphylaxis — so it is left to scoring / the 911 fallback, never forced to CPR.)

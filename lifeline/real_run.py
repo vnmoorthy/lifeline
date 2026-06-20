@@ -33,7 +33,8 @@ PROTO = {
         ["911", "emergency service", "emergency number", "999", "112", "call for help", "call ems"],
         ["compress", "compression", "center of the chest", "center of chest", "centre of chest",
          "middle of the chest", "push hard", "pump", "push on the chest", "push forcefully"],
-        ["100-120", "100 to 120", "100–120", "per minute"]],
+        ["100-120", "100 to 120", "100–120", "per minute"],
+        ["2 inches", "2 inch", "two inches", "5 cm", "5cm", "at least 2 inches", "deep"]],
         "forbid": ["give them water", "give water", "induce vomiting", "slap them awake"]},
     "choke": {"require": [
         ["911", "emergency service", "999", "112", "call for help"],
@@ -44,12 +45,13 @@ PROTO = {
         ["911", "emergency service", "999", "112", "call for help", "ambulance"],
         ["direct pressure", "apply pressure", "press on the wound", "firm pressure", "press firmly",
          "apply firm", "pressure to the wound", "pressure on the wound", "applying pressure",
-         "tourniquet", "elevate the"]],
+         "press hard on the wound"]],  # direct pressure is PRIMARY; a tourniquet-only answer must fall back
         "forbid": ["remove the soaked", "tourniquet around the neck", "tourniquet on the neck"]},
     "od": {"require": [
         ["911", "emergency service", "999", "112", "call for help"],
         ["naloxone", "narcan"],
-        ["rescue breath", "cpr", "recovery position", "breathing"]],
+        ["rescue breath", "rescue breaths", "cpr", "chest compressions", "check breathing",
+         "if not breathing", "give breaths"]],  # must address breathing, not just "recovery position"
         "forbid": ["cold shower", "induce vomiting", "let them sleep it off"]},
     "burn": {"require": [
         ["cool running water", "cool water", "cold water", "running water", "under water", "under cool", "under cold",
