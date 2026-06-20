@@ -163,7 +163,8 @@ ARREST = ["not breathing", "isn't breathing", "isnt breathing", "stopped breathi
 DOWN = ["unconscious", "unresponsive", "passed out", "collapsed", "won't wake", "wont wake",
         "not responding", "won't respond", "wont respond", "blacked out", "went limp", "fainted"]
 BREATHE_TROUBLE = ["can't breathe", "cant breathe", "can't breath", "struggling to breathe",
-                   "trouble breathing", "barely breathe", "hard to breathe"]
+                   "trouble breathing", "barely breathe", "hard to breathe", "can't cough it up",
+                   "cough it up", "can't get it out", "can't get it up", "gagging"]
 CHOKE_OBJECT = ["chok", "stuck", "lodged", "object", "swallowed something"]
 # Phrasings that mean it is NOT an active emergency: hypothetical fear ("afraid OF having a stroke",
 # distinct from the real "afraid he's having a stroke") or already-resolved ("but he's ok now").

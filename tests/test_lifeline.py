@@ -73,6 +73,8 @@ def test_recognition_adversarial():
     check(recognize("he's burning up and not making sense") == "heatstroke", "'burning up' misrouted to burn")
     check(recognize("got heatstroke from being outside too long") == "heatstroke", "'heatstroke' misrouted to stroke")
     check(recognize("epistaxis, won't stop bleeding") == "nosebleed", "'epistaxis' misrouted to bleed")
+    check(recognize("my kid swallowed something, she can't cough it up") == "choke", "choking child misrouted to poison")
+    check(recognize("my toddler swallowed a bunch of pills") == "poison", "pill ingestion misrouted off poison")
 
 
 def test_fallback_invariant():
