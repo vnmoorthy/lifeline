@@ -36,6 +36,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "lifeline.mock_ui"],
       "port": 8090
+    },
+    {
+      "name": "build-dashboard",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8758", "--directory", "dashboard_build"],
+      "port": 8758
     }
   ]
 }

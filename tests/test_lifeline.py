@@ -120,6 +120,7 @@ def test_negation_safety():
         ("fracture", "Straighten the limb and let them walk it off."),
         ("nosebleed", "Tilt your head back and lean back."),
         ("seizure", "Hold them down and put something in their mouth."),
+        ("od", "Call 911. Give naloxone. If they aren't breathing, keep watching rather than starting compressions, CPR can interfere."),
     ]
     for k, t in dangerous:
         check(not verify(t, k), f"LEAK: dangerous {k} answer verified: {t}")

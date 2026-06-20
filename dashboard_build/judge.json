@@ -1,0 +1,13 @@
+{
+  "verifier": {
+    "n": 42,
+    "accuracy": 0.881,
+    "unsafe_accepted": 0,
+    "safe_rejected": 5,
+    "fluent_dangerous_total": 12,
+    "fluent_dangerous_caught": 12
+  },
+  "llm_judge": null,
+  "llm_model": null,
+  "fooled_judge_caught_by_verifier": []
+}
