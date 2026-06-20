@@ -1,0 +1,46 @@
+{
+  "project": "Lifeline",
+  "note": "UX/product-depth stories for the Ralph loop. Additive, GPU-free, no collision with the Devin eval-suite task. One story per loop; mark passes:true when validated.",
+  "stories": [
+    {
+      "id": "speaking-indicator",
+      "priority": 1,
+      "passes": false,
+      "title": "Speaking indicator + Stop control",
+      "detail": "While the steps are being spoken aloud, show an animated 'Speaking…' indicator in the steps header and turn the Repeat button into a Stop control that cancels speech. Clear it on utterance end. Hands-free clarity so the user knows audio is playing and can stop it.",
+      "acceptance": "speak() toggles a .speaking state via utterance onstart/onend; an aria-hidden animated indicator shows while speaking; Repeat<->Stop toggles; check.sh green; preview confirms."
+    },
+    {
+      "id": "tap-step-replay",
+      "priority": 2,
+      "passes": false,
+      "title": "Tap a step to replay just that step",
+      "detail": "Each first-aid step card is tappable/focusable; activating it re-speaks only that step and briefly highlights it. Lets a hands-busy user re-hear one instruction without replaying everything.",
+      "acceptance": "steps are role=button, tabindex=0, keyboard-activatable, aria-label includes the step; click/Enter speaks that step; a hint line tells users they can tap a step; check.sh green; preview confirms."
+    },
+    {
+      "id": "large-text-toggle",
+      "priority": 3,
+      "passes": false,
+      "title": "Large-text / high-contrast accessibility toggle",
+      "detail": "A small persistent toggle (localStorage) that bumps step + body font sizes for elderly/panic/low-vision use. Remembered across reloads.",
+      "acceptance": "toggle in header sets a body.large class, persisted in localStorage and restored on load; larger type in .large mode; accessible button (aria-pressed); check.sh green; preview confirms both modes."
+    },
+    {
+      "id": "network-retry",
+      "priority": 4,
+      "passes": false,
+      "title": "Retry on network error",
+      "detail": "When /ask fails (network/timeout), show a clear 'Try again' button that re-runs the last query, alongside the call-911 fallback. Track the last query.",
+      "acceptance": "last query stored; network-error state shows a working 'Try again' that re-issues ask(lastQuery); existing safe-fallback messaging preserved; check.sh green; preview confirms."
+    },
+    {
+      "id": "compute-microcopy",
+      "priority": 5,
+      "passes": false,
+      "title": "Clearer inference-time-compute microcopy",
+      "detail": "Make the engine panel narrate the inference-time-compute story to a non-expert/judge: while generating, 'Drafting answers and checking each against the official protocol…'; add a one-line legend for the candidate cells (green = passed the protocol check). Keeps the crisp verified result line.",
+      "acceptance": "clearer elbl during generation; a small cell legend; verified/fallback result lines unchanged in meaning; check.sh green; preview confirms."
+    }
+  ]
+}
