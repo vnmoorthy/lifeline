@@ -51,6 +51,9 @@ def test_recognition_adversarial():
     check(recognize("can't breathe but nothing is stuck") != "choke", "'nothing is stuck' -> choke")
     # ...but a far-away negation must NOT cancel a real emergency
     check(recognize("no time, he's having a stroke") == "stroke", "far 'no' wrongly cancelled real stroke")
+    # "won't/can't STOP X" is affirmative (continuous), not a negation
+    check(recognize("she won't stop choking") == "choke", "'won't stop choking' wrongly cancelled")
+    check(recognize("he won't stop bleeding") == "bleed", "'won't stop bleeding' wrongly cancelled")
 
 
 def test_fallback_invariant():
@@ -85,6 +88,10 @@ def test_negation_safety():
     ]
     for k, t in safe_negated:
         check(verify(t, k), f"false-negative: correct {k} answer rejected: {t}")
+    # an anaphylaxis answer that SKIPS the monitoring step must NOT verify (911-synonym
+    # augmentation must not leak into the monitoring concept-group)
+    incomplete_ana = "Call 911. Administer the EpiPen to the thigh. Lay them on their side. Contact emergency services again if needed."
+    check(not verify(incomplete_ana, "anaphylaxis"), "anaphylaxis answer missing the monitoring step wrongly verified")
 
 
 def main():

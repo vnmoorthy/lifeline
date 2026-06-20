@@ -115,8 +115,10 @@ class H(BaseHTTPRequestHandler):
         try:
             res = answer(str(json.loads(self.rfile.read(n) or b"{}").get("text", "")))
             self._send(200, json.dumps(res), "application/json")
-        except Exception as e:  # noqa: BLE001
-            self._send(500, json.dumps({"error": str(e)}), "application/json")
+        except Exception:  # noqa: BLE001  (never break the UI contract — return a safe fallback)
+            self._send(200, json.dumps({"recognized": False, "spoken": "Technical issue. Call 911 now.",
+                                        "answer": ["Call 911 now."], "candidates": [], "verified": True,
+                                        "fallback": False}), "application/json")
 
 
 def main():

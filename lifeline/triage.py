@@ -158,11 +158,21 @@ _NEGWORDS = {"no", "not", "never", "without", "nothing", "none", "cannot", "nope
 
 def _present(t: str, cue: str) -> bool:
     """True if cue appears with no negation word in the ~3 words before it WITHIN ITS CLAUSE — a
-    negation in a previous comma/period clause ('not breathing, suspected fentanyl') does not leak in."""
+    negation in a previous comma/period clause ('not breathing, suspected fentanyl') does not leak in.
+    'won't/can't STOP bleeding' is affirmative (continuous), so a negword directly before 'stop' is
+    not treated as a negation."""
     i = t.find(cue)
     while i != -1:
         start = max((t.rfind(b, 0, i) + 1) for b in ",.;\n")
-        if not any(w in _NEGWORDS for w in t[start:i].replace("'", "").split()[-3:]):
+        win = t[start:i].replace("'", "").split()[-3:]
+        neg = False
+        for j, w in enumerate(win):
+            if w in _NEGWORDS:
+                nxt = win[j + 1] if j + 1 < len(win) else cue
+                if not nxt.startswith("stop"):
+                    neg = True
+                    break
+        if not neg:
             return True
         i = t.find(cue, i + 1)
     return False

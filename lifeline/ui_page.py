@@ -152,7 +152,7 @@ async function ask(text){
       $('status').innerHTML='<span class="pill critical">Network unavailable — call 911</span>';
       $('stepsCard').style.display='block';$('stepsH').textContent='What to do';
       renderSteps(['Call 911 now and describe what you see.']);
-      $('actions').style.display='flex';announce('Network unavailable. Call 911 now.');return;
+      $('actions').style.display='flex';speak('Network unavailable. Call 911 now.');announce('Network unavailable. Call 911 now.');return;
     }finally{clearTimeout(to);}
 
     if(!r.recognized){
@@ -194,6 +194,7 @@ async function ask(text){
   }
 }
 function renderSteps(arr){
+  if(!Array.isArray(arr))arr=[String(arr||'Call 911 now.')];
   const box=$('steps');box.innerHTML='';
   arr.forEach((s,i)=>{
     const row=document.createElement('li');row.className='step';
@@ -204,6 +205,7 @@ function renderSteps(arr){
 }
 function resetAll(){
   try{speechSynthesis.cancel();}catch(e){}
+  lastSpeak='';
   $('stage').style.display='none';$('you').innerHTML='';$('txt').value='';
   $('txt').focus();announce('Ready.');
 }

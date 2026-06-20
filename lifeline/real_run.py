@@ -135,13 +135,23 @@ PROTO = {
                    "let them walk it off"]},
 }
 
-# Broaden every "call emergency services" group so correct model phrasings don't false-fallback.
+# Broaden ONLY the "call emergency services" groups so correct model phrasings don't false-fallback.
+# A group qualifies only if it actually expresses calling for help — guarded so a monitoring group
+# containing "until emergency" is NOT mistaken for a call group (that would let an answer skip the
+# monitoring step yet still verify).
 _EMERGENCY_SYNS = ["911", "call 911", "dial 911", "phone 911", "ring 911", "call emergency",
                    "call emergency services", "emergency services", "emergency number", "call for help",
                    "call an ambulance", "ring for help", "999", "112"]
+
+
+def _is_call_group(grp):
+    return any(("911" in s or s.startswith("call ") or s in ("emergency services", "emergency number", "ambulance"))
+               for s in grp)
+
+
 for _p in PROTO.values():
     for _grp in _p["require"]:
-        if any(("911" in s or "emergency" in s) for s in _grp):
+        if _is_call_group(_grp):
             _grp.extend(s for s in _EMERGENCY_SYNS if s not in _grp)
 
 SCENARIOS = [
