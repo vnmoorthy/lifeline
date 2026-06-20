@@ -48,7 +48,8 @@ PROTO = {
         ["rescue breath", "cpr", "recovery position", "breathing"]],
         "forbid": ["cold shower", "induce vomiting", "let them sleep it off"]},
     "burn": {"require": [
-        ["cool running water", "cool water", "running water", "cool the burn", "under water", "rinse", "cool, running"]],
+        ["cool running water", "cool water", "cold water", "running water", "under water", "under cool", "under cold",
+         "cool the burn", "cool the area", "run it under", "running it under", "rinse", "cool it", "lukewarm water", "cool, running"]],
         "forbid": ["apply ice", "put ice", "apply butter", "toothpaste"]},
 }
 
@@ -58,7 +59,7 @@ SCENARIOS = [
     {"id": "bleed",      "proto": "bleed", "q": "deep cut on the arm, bleeding a lot"},
     {"id": "burn",       "proto": "burn",  "q": "spilled boiling water on the hand"},
     {"id": "od",         "proto": "od",    "q": "someone overdosed on opioids, lips turning blue"},
-    {"id": "choke_hard", "proto": "choke", "q": "someone was choking and just went unconscious"},
+    {"id": "choke_hard", "proto": "cpr",   "q": "someone was choking and just went unconscious"},
     {"id": "od_hard",    "proto": "od",    "q": "unresponsive and not breathing, suspected fentanyl, and she's pregnant"},
     {"id": "bleed_hard", "proto": "bleed", "q": "leg wound still spurting after pressure, blood soaking through the cloth"},
 ]
