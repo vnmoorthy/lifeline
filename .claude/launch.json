@@ -30,6 +30,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "lifeline.server"],
       "port": 8080
+    },
+    {
+      "name": "lifeline-ui",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "lifeline.mock_ui"],
+      "port": 8090
     }
   ]
 }
