@@ -77,6 +77,27 @@ def test_recognition_adversarial():
     check(recognize("my toddler swallowed a bunch of pills") == "poison", "pill ingestion misrouted off poison")
 
 
+def test_recognition_coverage():
+    print("recognition: broadened phrasings route correctly (no spurious 'can't identify')")
+    pairs = [
+        ("no heartbeat", "cpr"), ("i can't feel a pulse", "cpr"), ("do cpr", "cpr"),
+        ("something's caught in his throat", "choke"), ("food went down the wrong way", "choke"),
+        ("he swallowed a marble and can't breathe", "choke"),
+        ("deep gash on his leg", "bleed"), ("arterial bleed", "bleed"),
+        ("he's od-ing", "od"), ("shot up and stopped breathing", "od"), ("took too many pills and passed out", "od"),
+        ("touched the stove", "burn"), ("throat swelling shut", "anaphylaxis"),
+        ("one side went numb", "stroke"), ("sudden confusion and weakness", "stroke"),
+        ("shaking on the floor", "seizure"), ("pain down my left arm", "heart_attack"),
+        ("my chest hurts and i'm sweating", "heart_attack"), ("kid fell in the lake", "drown"),
+        ("hypoglycemic", "hypoglycemia"), ("too cold for too long", "hypothermia"),
+        ("kid ate detergent", "poison"), ("i think it's broken", "fracture"),
+        ("bone is out of place", "fracture"), ("sprained ankle", "fracture"),
+    ]
+    for q, want in pairs:
+        got = recognize(q)
+        check(got == want, f"coverage: {q!r} -> {got} (want {want})")
+
+
 def test_fallback_invariant():
     print("safety invariant: every canonical fallback passes its own verifier")
     for k in CANON:
@@ -137,7 +158,7 @@ def test_negation_safety():
 
 
 def main():
-    for fn in (test_recognition, test_recognition_adversarial, test_fallback_invariant, test_key_consistency, test_negation_safety):
+    for fn in (test_recognition, test_recognition_adversarial, test_recognition_coverage, test_fallback_invariant, test_key_consistency, test_negation_safety):
         fn()
     n = len(SCENARIOS)
     if _fails:
