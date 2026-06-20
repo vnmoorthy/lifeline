@@ -44,6 +44,13 @@ def test_recognition_adversarial():
     # arrest still routes to CPR even when a far-away contraction is in the sentence
     check(recognize("i can't get him to wake up, he's not breathing") == "cpr", "far contraction wrongly cancelled arrest")
     check(recognize("he collapsed and isn't breathing") == "cpr", "headline arrest case must be CPR")
+    # word-based negation: "not having a X" (negator >1 word from cue) must be caught...
+    check(recognize("she is not having a stroke") is None, "'not having a stroke' -> stroke")
+    check(recognize("i'm not having a heart attack, just heartburn") != "heart_attack", "'not having a heart attack' misrouted")
+    check(recognize("he's not having a seizure anymore") != "seizure", "'not having a seizure' misrouted")
+    check(recognize("can't breathe but nothing is stuck") != "choke", "'nothing is stuck' -> choke")
+    # ...but a far-away negation must NOT cancel a real emergency
+    check(recognize("no time, he's having a stroke") == "stroke", "far 'no' wrongly cancelled real stroke")
 
 
 def test_fallback_invariant():

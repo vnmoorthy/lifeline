@@ -147,17 +147,22 @@ BREATHE_TROUBLE = ["can't breathe", "cant breathe", "can't breath", "struggling 
                    "trouble breathing", "barely breathe", "hard to breathe"]
 CHOKE_OBJECT = ["chok", "stuck", "lodged", "object", "swallowed something"]
 
-# Negation handling: a cue only counts if it is NOT negated just before it ("no chest pain",
-# "he's not choking" must not route to heart_attack / choke). A short 12-char window is used so a
-# far-away contraction ("can't get him up, he's not breathing") does NOT wrongly cancel an arrest cue.
-_NEG = ("no ", "not ", "n't", "never ", "without ", "isn't", "aren't")
+# Negation handling: a cue only counts if none of the ~3 words just before it is a negation word
+# ("no chest pain", "she is not having a stroke", "nothing is stuck" must not route). Word-based,
+# not a char window, so "not having a stroke" IS caught while a far-away "no time, ... stroke" is
+# NOT (its "no" is >3 words from the cue), which keeps real emergencies from being cancelled.
+_NEGWORDS = {"no", "not", "never", "without", "nothing", "none", "cannot", "nope", "neither", "nor",
+             "cant", "isnt", "arent", "wont", "dont", "doesnt", "didnt", "wasnt", "werent", "hasnt",
+             "havent", "wouldnt", "couldnt", "shouldnt", "aint"}
 
 
 def _present(t: str, cue: str) -> bool:
-    """True if cue appears with no negation immediately before it."""
+    """True if cue appears with no negation word in the ~3 words before it WITHIN ITS CLAUSE — a
+    negation in a previous comma/period clause ('not breathing, suspected fentanyl') does not leak in."""
     i = t.find(cue)
     while i != -1:
-        if not any(n in t[max(0, i - 12):i] for n in _NEG):
+        start = max((t.rfind(b, 0, i) + 1) for b in ",.;\n")
+        if not any(w in _NEGWORDS for w in t[start:i].replace("'", "").split()[-3:]):
             return True
         i = t.find(cue, i + 1)
     return False
@@ -175,7 +180,7 @@ def recognize(t: str):
         return "nosebleed"
     # 3) Breathing difficulty WITH a choking object -> choke. (Bare dyspnea is ambiguous — asthma,
     #    panic, cardiac, anaphylaxis — so it is left to scoring / the 911 fallback, never forced to CPR.)
-    if any(_present(t, c) for c in BREATHE_TROUBLE) and any(o in t for o in CHOKE_OBJECT):
+    if any(_present(t, c) for c in BREATHE_TROUBLE) and any(_present(t, o) for o in CHOKE_OBJECT):
         return "choke"
     # 4) Unconscious choking -> CPR (compressions can clear the airway).
     if _present(t, "chok") and any(d in t for d in DOWN):
