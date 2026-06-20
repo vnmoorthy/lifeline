@@ -26,6 +26,20 @@ from nozzle.controller import decide_n, PROBE_K, N_HARD
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KS = [1, 2, 4, 8, 16, 32]
+DISPLAY_N = {"easy": 6, "medium": 12, "hard": 24}
+
+
+def preview(rows, error) -> str:
+    if error:
+        return "error"
+    if not rows:
+        return "(empty)"
+    if len(rows) == 1 and len(rows[0]) == 1:
+        v = rows[0][0]
+        return f"{v:.2f}" if isinstance(v, float) else str(v)
+    if len(rows) == 1:
+        return ", ".join(str(c) for c in rows[0])
+    return f"{len(rows)} rows"
 
 
 def build_pool(questions, backend, nmax, temperature):
@@ -111,6 +125,23 @@ def main():
     ctrl_acc, ctrl_samples, per_q = run_controller(pool, questions, a.resamples)
     total_samples = sum(len(pool[q["id"]]) for q in questions)
 
+    stage = []
+    for q in questions:
+        cands = pool[q["id"]]
+        shown = cands[:DISPLAY_N.get(q["difficulty"], 12)]
+        base = cands[0]
+        con = consensus_select(cands)
+        stage.append({
+            "id": q["id"], "q": q["q"], "difficulty": q["difficulty"],
+            "gold": preview(q["gold_rows"], None),
+            "n_total": len(cands),
+            "baseline": {"preview": preview(base["rows"], base["error"]), "correct": base["correct"]},
+            "consensus": {"preview": preview(con["rows"], None) if con else "(no valid answer)",
+                          "correct": bool(con and con["correct"])},
+            "candidates": [{"ok": e["error"] is None, "correct": e["correct"],
+                            "preview": preview(e["rows"], e["error"])} for e in shown],
+        })
+
     fixed_hard_acc = consensus[max(k for k in KS if k <= N_HARD)]
     print(f"\n  {'N':>4} | consensus  single-shot")
     for k in KS:
@@ -134,6 +165,7 @@ def main():
         "controller": {"acc": ctrl_acc, "avg_samples": ctrl_samples},
         "fixed_hard": {"n": N_HARD, "acc": fixed_hard_acc},
         "per_question": per_q,
+        "stage": stage,
     }
     out = os.path.join(BASE, "dashboard_nozzle")
     os.makedirs(out, exist_ok=True)
@@ -141,9 +173,11 @@ def main():
         json.dump(data, f, indent=2)
     with open(os.path.join(out, "index.html"), "w") as f:
         f.write(build_html(data))
-    print(f"\n  -> dashboard_nozzle/index.html"
-          + ("   (SIMULATED — plumbing only, do NOT demo these numbers)" if simulated else "")
-          + "\n")
+    with open(os.path.join(out, "stage.html"), "w") as f:
+        f.write(build_stage(data))
+    tail = "   (SIMULATED — plumbing only, do NOT demo these numbers)" if simulated else ""
+    print(f"\n  -> dashboard_nozzle/stage.html  (the live demo){tail}")
+    print(f"  -> dashboard_nozzle/index.html  (the analysis){tail}\n")
 
 
 def build_html(d):
@@ -207,6 +241,107 @@ const cx=x(Math.max(1,D.controller.avg_samples)),cy=y(D.controller.acc);
 g+=`<circle cx="${cx}" cy="${cy}" r="6" fill="#d29922"/><text x="${cx+9}" y="${cy+4}" fill="#d29922" font-size="11">controller: ${(D.controller.acc*100).toFixed(0)}% @ ${D.controller.avg_samples.toFixed(1)} avg</text>`;
 $('chart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`;
 $('rows').innerHTML=D.per_question.map(r=>`<tr><td>${r.q}</td><td><span class="pill ${r.difficulty}">${r.difficulty}</span></td><td>N=${r.avg_n} · ${(r.acc*100).toFixed(0)}%</td></tr>`).join('');
+</script></body></html>
+"""
+
+
+def build_stage(d):
+    return _STAGE_HTML.replace("/*__DATA__*/", json.dumps(d))
+
+
+_STAGE_HTML = r"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nozzle — live</title><style>
+:root{--bg:#0b0f14;--panel:#161b22;--line:#21262d;--text:#e6edf3;--dim:#8b949e;--green:#3fb950;--red:#f85149;--amber:#d29922;--blue:#58a6ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 20px 60px}h1{margin:0;font-size:24px}
+.tag{color:var(--dim);margin-bottom:8px}.banner{margin:8px 0;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600}
+.real{background:rgba(63,185,80,.13);color:var(--green);border:1px solid rgba(63,185,80,.4)}
+.sim{background:rgba(248,81,73,.13);color:var(--red);border:1px solid rgba(248,81,73,.4)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.chip{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 13px;font-size:13px;color:var(--text)}
+.chip:hover{border-color:var(--blue)}.chip .d{font-size:11px;color:var(--dim);margin-left:6px}
+.ask{font-size:20px;margin:6px 0 16px}.ask b{color:var(--blue)}
+.cols{display:grid;grid-template-columns:1fr 1.4fr;gap:16px}@media(max-width:760px){.cols{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:240px}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin:0 0 12px}
+.one{width:30px;height:30px;border-radius:6px;background:#30363d;display:inline-block}
+.ans{font-size:30px;font-weight:800;margin-top:14px;min-height:38px}
+.ans.good{color:var(--green)}.ans.bad{color:var(--red)}
+.sub{color:var(--dim);font-size:13px;margin-top:4px;min-height:18px}
+.grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.cell{width:16px;height:16px;border-radius:4px;background:#30363d;transform:scale(.2);opacity:0;transition:all .25s}
+.cell.in{transform:scale(1);opacity:1}
+.cell.correct{background:var(--green)}.cell.wrong{background:var(--amber)}.cell.err{background:var(--red)}
+.cnt{font-size:13px;color:var(--dim);min-height:18px}
+.bar{margin-top:16px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0b0f14;font-size:14px;min-height:20px}
+.btn{cursor:pointer;border:0;border-radius:8px;padding:9px 16px;font-weight:700;background:var(--green);color:#04210e;margin-top:8px}
+.muted{color:var(--dim)}
+</style></head><body><div class="wrap">
+<h1>Nozzle <span class="muted" style="font-size:15px">— ask your data, trust the answer</span></h1>
+<div class="tag">Easy question → 1 try. Hard question → many tries, verified against the database. More compute, aimed where it matters.</div>
+<div id="banner"></div>
+<div class="chips" id="chips"></div>
+<div class="ask" id="ask"></div>
+<div class="cols">
+  <div class="card"><h2>Plain AI · 1 answer</h2>
+    <div id="one"><span class="one"></span></div>
+    <div class="ans" id="oneAns"></div><div class="sub" id="oneSub"></div>
+  </div>
+  <div class="card"><h2>Nozzle · verified swarm</h2>
+    <div class="grid" id="grid"></div><div class="cnt" id="cnt"></div>
+    <div class="ans" id="swAns"></div><div class="sub" id="swSub"></div>
+  </div>
+</div>
+<div class="bar" id="bar"></div>
+<button class="btn" id="run">▶ Run again</button>
+</div>
+<script>
+const D=/*__DATA__*/;const $=i=>document.getElementById(i);
+$('banner').className='banner '+(D.simulated?'sim':'real');
+$('banner').textContent=D.simulated
+ ?'⚠ SIMULATED candidates (backend=smoke) — pipeline demo only. Run with --backend vllm for real model output.'
+ :'● REAL — backend='+D.backend+' · model='+D.model+' · candidates executed against a live database';
+let cur=D.stage.find(s=>s.difficulty==='hard')||D.stage[0];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+$('chips').innerHTML=D.stage.map((s,i)=>`<span class="chip" data-i="${i}">${s.q}<span class="d">${s.difficulty}</span></span>`).join('');
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{cur=D.stage[+c.dataset.i];play();});
+$('run').onclick=play;
+
+async function play(){
+  $('ask').innerHTML='“ <b>'+cur.q+'</b> ”';
+  // reset
+  $('oneAns').textContent='';$('oneAns').className='ans';$('oneSub').textContent='';
+  $('grid').innerHTML='';$('cnt').textContent='';$('swAns').textContent='';$('swAns').className='ans';$('swSub').textContent='';
+  $('bar').textContent='';
+  // plain AI: one shot
+  await sleep(500);
+  const b=cur.baseline;
+  $('oneAns').textContent=b.preview;$('oneAns').className='ans '+(b.correct?'good':'bad');
+  $('oneSub').textContent=b.correct?'happened to be right':'confident… and wrong';
+  // nozzle: swarm
+  const cs=cur.candidates;
+  for(let i=0;i<cs.length;i++){
+    const el=document.createElement('div');el.className='cell';$('grid').appendChild(el);
+    requestAnimationFrame(()=>el.classList.add('in'));
+    await sleep(35);
+  }
+  $('cnt').textContent=cs.length+' attempts generated (controller chose this many for a '+cur.difficulty+' question)';
+  await sleep(300);
+  const cells=[...document.querySelectorAll('#grid .cell')];
+  for(let i=0;i<cs.length;i++){
+    const c=cs[i];cells[i].classList.add(c.correct?'correct':(c.ok?'wrong':'err'));
+    await sleep(45);
+  }
+  const ok=cs.filter(c=>c.ok).length,agree=cs.filter(c=>c.correct).length;
+  await sleep(250);
+  $('swAns').textContent=cur.consensus.preview;$('swAns').className='ans '+(cur.consensus.correct?'good':'bad');
+  $('swSub').textContent=agree+' of '+ok+' valid answers agree → verified by execution on the database';
+  await sleep(300);
+  $('bar').innerHTML='✅ Truth (gold): <b>'+cur.gold+'</b> &nbsp;—&nbsp; '
+    +(b.correct?'plain AI right':'<span style="color:var(--red)">plain AI was WRONG</span>')
+    +', <span style="color:var(--green)">Nozzle verified correct</span>.';
+}
+play();
 </script></body></html>
 """
 

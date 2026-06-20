@@ -12,6 +12,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8754", "--directory", "dashboard_nozzle"],
       "port": 8754
+    },
+    {
+      "name": "nozzle-stage",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8755", "--directory", ".preview_stage"],
+      "port": 8755
     }
   ]
 }

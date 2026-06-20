@@ -18,3 +18,4 @@ data/nozzle.db
 # data/devin_runs/
 
 .DS_Store
+.preview_stage/
