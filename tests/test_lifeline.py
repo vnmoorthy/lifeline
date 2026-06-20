@@ -61,6 +61,9 @@ def test_recognition_adversarial():
     check(recognize("i'm afraid of having a stroke someday") is None, "'afraid of having a stroke' should be None")
     check(recognize("she was having a stroke but she's ok now") is None, "resolved case should be None")
     check(recognize("i'm afraid he's having a stroke") == "stroke", "real 'afraid he's having a stroke' was suppressed")
+    # opioid OD with arrest must route to OD (naloxone), not generic CPR
+    check(recognize("she took too much, she's got pinpoint pupils and not breathing") == "od", "pinpoint+arrest must be OD not CPR")
+    check(recognize("he overdosed and isn't breathing") == "od", "overdose+arrest must be OD not CPR")
 
 
 def test_fallback_invariant():

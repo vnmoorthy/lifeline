@@ -136,7 +136,11 @@ CANON = {
 }
 
 # Priority overrides (checked before generic scoring) ----------------------------------------
-OD_HARD = ["opioid", "opioids", "fentanyl", "heroin", "naloxone", "narcan"]
+OD_HARD = ["opioid", "opioids", "fentanyl", "heroin", "naloxone", "narcan", "pinpoint"]
+# Softer overdose signals: route to OD only when the person is also in arrest/unresponsive — there
+# the OD protocol (naloxone + rescue breaths + CPR + recovery position) is the correct superset, and
+# empiric naloxone is harmless if it turns out non-opioid. Conscious ingestion stays poison/scoring.
+OD_SOFT = ["overdose", "overdosed", "took too much", "od'd"]
 DROWN_CUES = ["drowning", "drowned", "out of the pool", "pulled out of the pool", "out of the water",
               "fell in the pool", "fell in the water", "face down in the water", "out of the lake",
               "out of the ocean", "pulled from the water"]
@@ -195,6 +199,8 @@ def recognize(t: str):
         return None
     # 1) Specific supersets that already include CPR/rescue breathing must win over generic arrest.
     if any(_present(t, c) for c in OD_HARD):
+        return "od"
+    if any(_present(t, c) for c in OD_SOFT) and (any(_present(t, a) for a in ARREST) or any(d in t for d in DOWN)):
         return "od"
     if any(_present(t, c) for c in DROWN_CUES):
         return "drown"
