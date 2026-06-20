@@ -145,6 +145,10 @@ _EMERGENCY_SYNS = ["911", "call 911", "dial 911", "phone 911", "ring 911", "call
 
 
 def _is_call_group(grp):
+    # a Poison-Control group ("call poison control") is NOT a generic 911 group — don't let it be
+    # satisfied by a bare "call 911" answer that omits the poison-control number.
+    if any("poison" in s for s in grp):
+        return False
     return any(("911" in s or s.startswith("call ") or s in ("emergency services", "emergency number", "ambulance"))
                for s in grp)
 

@@ -54,6 +54,13 @@ def test_recognition_adversarial():
     # "won't/can't STOP X" is affirmative (continuous), not a negation
     check(recognize("she won't stop choking") == "choke", "'won't stop choking' wrongly cancelled")
     check(recognize("he won't stop bleeding") == "bleed", "'won't stop bleeding' wrongly cancelled")
+    # "didn't prevent" / "nothing prevented" = continuation, still an emergency
+    check(recognize("the tourniquet didn't prevent the bleeding") == "bleed", "'didn't prevent the bleeding' dropped")
+    check(recognize("nothing prevented the blood from flowing") == "bleed", "'nothing prevented the blood' dropped")
+    # hypothetical / resolved phrasing -> None, but a REAL concurrent emergency must NOT be suppressed
+    check(recognize("i'm afraid of having a stroke someday") is None, "'afraid of having a stroke' should be None")
+    check(recognize("she was having a stroke but she's ok now") is None, "resolved case should be None")
+    check(recognize("i'm afraid he's having a stroke") == "stroke", "real 'afraid he's having a stroke' was suppressed")
 
 
 def test_fallback_invariant():
@@ -92,6 +99,9 @@ def test_negation_safety():
     # augmentation must not leak into the monitoring concept-group)
     incomplete_ana = "Call 911. Administer the EpiPen to the thigh. Lay them on their side. Contact emergency services again if needed."
     check(not verify(incomplete_ana, "anaphylaxis"), "anaphylaxis answer missing the monitoring step wrongly verified")
+    # a poisoning answer that omits Poison Control must NOT verify on a bare '911' alone
+    poison_no_pc = "Call 911. Identify the substance and keep the container. Do not induce vomiting."
+    check(not verify(poison_no_pc, "poison"), "poison answer without Poison Control wrongly verified")
 
 
 def main():

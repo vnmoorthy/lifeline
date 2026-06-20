@@ -146,6 +146,14 @@ DOWN = ["unconscious", "unresponsive", "passed out", "collapsed", "won't wake", 
 BREATHE_TROUBLE = ["can't breathe", "cant breathe", "can't breath", "struggling to breathe",
                    "trouble breathing", "barely breathe", "hard to breathe"]
 CHOKE_OBJECT = ["chok", "stuck", "lodged", "object", "swallowed something"]
+# Phrasings that mean it is NOT an active emergency: hypothetical fear ("afraid OF having a stroke",
+# distinct from the real "afraid he's having a stroke") or already-resolved ("but he's ok now").
+HYPOTHETICAL = ["afraid of having", "worried about having", "scared of having", "afraid of getting",
+                "scared of getting", "risk of having", "chance of having", "how to prevent",
+                "how do i prevent", "how to avoid", "what if i have", "what if he has", "what if she has"]
+RESOLVED = ["but she's ok", "but he's ok", "but they're ok", "but she's fine", "but he's fine",
+            "but i'm fine", "but im fine", "but it stopped", "but everything is fine",
+            "but seems fine now", "but feels fine now", "but is fine now"]
 
 # Negation handling: a cue only counts if none of the ~3 words just before it is a negation word
 # ("no chest pain", "she is not having a stroke", "nothing is stuck" must not route). Word-based,
@@ -169,7 +177,8 @@ def _present(t: str, cue: str) -> bool:
         for j, w in enumerate(win):
             if w in _NEGWORDS:
                 nxt = win[j + 1] if j + 1 < len(win) else cue
-                if not nxt.startswith("stop"):
+                # "won't STOP" / "didn't PREVENT" / "nothing PREVENTED" are continuation, not negation
+                if not (nxt.startswith("stop") or nxt.startswith("prevent")):
                     neg = True
                     break
         if not neg:
@@ -180,6 +189,10 @@ def _present(t: str, cue: str) -> bool:
 
 def recognize(t: str):
     t = (t or "").lower()
+    # 0) Hypothetical ("afraid of having a stroke") or already-resolved ("but he's ok now") -> not an
+    #    active emergency; return None so the UI prompts to call 911 only if the caller insists.
+    if any(h in t for h in HYPOTHETICAL) or any(r in t for r in RESOLVED):
+        return None
     # 1) Specific supersets that already include CPR/rescue breathing must win over generic arrest.
     if any(_present(t, c) for c in OD_HARD):
         return "od"
