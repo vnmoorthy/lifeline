@@ -20,6 +20,25 @@ passes — the real thing, not best-of-N). **Verifier:** grounded concept-group 
 - Honest ceiling ~72%: a small fast model + a *strict* grounded verifier + genuinely hard
   multi-factor cases (burns, post-tourniquet bleeding). We did NOT loosen the verifier to inflate it.
 
+## The accurate final product: denoising depth × best-of-N (both compute knobs)
+
+At 16 denoising steps, generate N candidates and let the grounded verifier keep a verified one
+(fall back to the canonical protocol if none verify → never an unverified step):
+
+| best-of-N @ 16 denoising steps | verified accuracy |
+|---|---|
+| 1 (single answer) | 79.6% |
+| 2 | 84.4% |
+| 4 | 89.8% |
+| 8 | 94.7% |
+| **16** | **98.5%** |
+
+**79.6% → 98.5%** by spending compute two ways (denoising depth + parallel breadth), verified by
+execution against the protocols. Per emergency at 16 steps: cpr/bleed/od/od_hard/bleed_hard ~100%
+on a *single* answer (instant); only **burn (12%)** and **choke_hard (31%)** are hard — and best-of-N
+rescues them. So the **effort-manager** runs the common emergencies instantly and pours compute only
+into the rare hard ones — accurate *and* real-time. Latency per generation: 0.5s (2 steps) → 1.9s (16).
+
 ## The visceral demo (same prompt, "not breathing", different denoising budgets)
 
 **4 steps — under-denoised garbage (verified=False):**

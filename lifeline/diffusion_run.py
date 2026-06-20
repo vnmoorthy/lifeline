@@ -59,49 +59,101 @@ def generate(q: str, max_steps: int, conf: float | None = None) -> str:
         raise TimeoutError("generation exceeded GEN_TIMEOUT")
     signal.signal(signal.SIGALRM, _timeout)
     signal.alarm(int(os.environ.get("GEN_TIMEOUT", "90")))
+    t0 = time.time()
     try:
         with torch.no_grad():
             out = model.generate(input_ids=ids, generation_config=gc)
     finally:
         signal.alarm(0)
+    dt = time.time() - t0
     seq = out.sequences if hasattr(out, "sequences") else out
     text = tok.decode(seq[0][ids.shape[1]:], skip_special_tokens=True)
-    return text
+    return text, dt
 
 
 def main():
     if "--test" in sys.argv:
         for steps in (4, 32):
-            t0 = time.time()
-            txt = generate(SCENARIOS[0]["q"], steps)
+            txt, dt = generate(SCENARIOS[0]["q"], steps)
             ok = verify(txt, SCENARIOS[0]["proto"])
-            print(f"\n=== steps={steps}  ({time.time()-t0:.1f}s)  verified={ok} ===\n{txt[:600]}", flush=True)
+            print(f"\n=== steps={steps}  ({dt:.1f}s)  verified={ok} ===\n{txt[:600]}", flush=True)
         return
 
-    # accuracy vs denoising steps
+    if "--bestofn" in sys.argv:
+        import random as _r
+        rng = _r.Random(0)
+        steps = int(os.environ.get("BON_STEPS", "16"))
+        pool_n = int(os.environ.get("POOL_N", "16"))
+        ks = [1, 2, 4, 8, 16]
+        flags_by, per_scen = {}, []
+        for sc in SCENARIOS:
+            flags = []
+            for _ in range(pool_n):
+                txt, _dt = generate(sc["q"], steps)
+                flags.append(verify(txt, sc["proto"]))
+            flags_by[sc["id"]] = flags
+            print(f"  {sc['id']}: {sum(flags)}/{pool_n} verified @ {steps} steps", flush=True)
+        curve = {}
+        for k in ks:
+            per = []
+            for sc in SCENARIOS:
+                f = flags_by[sc["id"]]
+                per.append(statistics.mean([1.0 if any(f[rng.randrange(len(f))] for _ in range(k)) else 0.0
+                                            for _ in range(500)]))
+            curve[k] = round(statistics.mean(per), 4)
+            print(f"== best-of-{k} @ {steps} denoising steps -> acc={curve[k]:.3f}", flush=True)
+        for sc in SCENARIOS:
+            f = flags_by[sc["id"]]
+            per_scen.append({"id": sc["id"], "q": sc["q"],
+                             "single": round(statistics.mean([1.0 if x else 0.0 for x in f]), 2)})
+        data = {"project": "Lifeline", "real": True, "model": MODEL,
+                "knob": f"best-of-N at {steps} denoising steps", "grid": ks,
+                "curve": [curve[k] for k in ks], "denoising_steps": steps, "pool_n": pool_n,
+                "single_shot": curve[1], "best": curve[ks[-1]], "scenarios": per_scen}
+        out = os.path.join(BASE, "dashboard_lifeline")
+        os.makedirs(out, exist_ok=True)
+        with open(os.path.join(out, "diffusion_bestofn_results.json"), "w") as fh:
+            json.dump(data, fh, indent=2)
+        print(f"\n  best-of-N {ks}: {[curve[k] for k in ks]}")
+        print(f"  -> dashboard_lifeline/diffusion_bestofn_results.json")
+        return
+
+    # accuracy + latency vs denoising steps
     curve = {}
+    lat = {}
     for s in STEPS_GRID:
         per = []
+        lats = []
         for sc in SCENARIOS:
-            hits = [1.0 if verify(generate(sc["q"], s), sc["proto"]) else 0.0 for _ in range(SAMPLES)]
-            per.append(statistics.mean(hits))
-            print(f"  steps={s} {sc['id']}: {per[-1]:.2f}", flush=True)
+            for _ in range(SAMPLES):
+                txt, dt = generate(sc["q"], s)
+                per.append(1.0 if verify(txt, sc["proto"]) else 0.0)
+                lats.append(dt)
         curve[s] = round(statistics.mean(per), 4)
-        print(f"== steps={s} -> acc={curve[s]:.3f}", flush=True)
+        lat[s] = round(statistics.mean(lats), 2)
+        print(f"== steps={s} -> acc={curve[s]:.3f}  ({lat[s]:.1f}s/gen)", flush=True)
 
-    # native adaptive effort-manager: confidence-based early stop (cap at max steps)
+    # native adaptive effort-manager (confidence-based early stop), per emergency + latency
     conf = float(os.environ.get("CONF", "0.9"))
-    ctrl = []
+    per_scen = []
     for sc in SCENARIOS:
-        hits = [1.0 if verify(generate(sc["q"], STEPS_GRID[-1], conf=conf), sc["proto"]) else 0.0 for _ in range(SAMPLES)]
-        ctrl.append(statistics.mean(hits))
-        print(f"  [adaptive conf={conf}] {sc['id']}: {ctrl[-1]:.2f}", flush=True)
-    ctrl_acc = round(statistics.mean(ctrl), 4)
+        hits = []
+        lats = []
+        for _ in range(SAMPLES):
+            txt, dt = generate(sc["q"], STEPS_GRID[-1], conf=conf)
+            hits.append(1.0 if verify(txt, sc["proto"]) else 0.0)
+            lats.append(dt)
+        per_scen.append({"id": sc["id"], "q": sc["q"], "proto": sc["proto"],
+                         "acc": round(statistics.mean(hits), 2), "latency_s": round(statistics.mean(lats), 2)})
+        print(f"  [adaptive] {sc['id']}: acc={per_scen[-1]['acc']:.2f}  {per_scen[-1]['latency_s']:.1f}s", flush=True)
+    ctrl_acc = round(statistics.mean([p["acc"] for p in per_scen]), 4)
+    ctrl_lat = round(statistics.mean([p["latency_s"] for p in per_scen]), 2)
 
     data = {"project": "Lifeline", "real": True, "model": MODEL, "knob": "max_denoising_steps",
-            "grid": STEPS_GRID, "curve": [curve[s] for s in STEPS_GRID],
-            "single_lowstep": curve[STEPS_GRID[0]], "best": curve[STEPS_GRID[-1]],
-            "adaptive": {"confidence_threshold": conf, "acc": ctrl_acc}}
+            "grid": STEPS_GRID, "curve": [curve[s] for s in STEPS_GRID], "latency_s": [lat[s] for s in STEPS_GRID],
+            "single_lowstep": curve[STEPS_GRID[0]], "best": max(curve.values()),
+            "adaptive": {"confidence_threshold": conf, "acc": ctrl_acc, "latency_s": ctrl_lat},
+            "scenarios": per_scen}
     out = os.path.join(BASE, "dashboard_lifeline")
     os.makedirs(out, exist_ok=True)
     with open(os.path.join(out, "diffusion_results.json"), "w") as f:

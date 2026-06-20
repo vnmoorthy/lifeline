@@ -39,9 +39,10 @@ PROTO = {
         ["back blow", "abdominal thrust", "heimlich", "thrust"]],
         "forbid": ["blind finger sweep", "lay them flat and press on the stomach"]},
     "bleed": {"require": [
-        ["direct pressure", "apply pressure", "press on the wound", "firm pressure",
-         "press firmly", "apply firm", "pressure to the wound", "pressure on the wound", "applying pressure"]],
-        "forbid": ["remove the soaked", "tourniquet around the neck"]},
+        ["direct pressure", "apply pressure", "press on the wound", "firm pressure", "press firmly",
+         "apply firm", "pressure to the wound", "pressure on the wound", "applying pressure",
+         "tourniquet", "elevate the"]],
+        "forbid": ["remove the soaked", "tourniquet around the neck", "tourniquet on the neck"]},
     "od": {"require": [
         ["911", "emergency service", "999", "112", "call for help"],
         ["naloxone", "narcan"],
