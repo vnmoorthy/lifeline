@@ -79,7 +79,7 @@ sub.word_wrap = True
 sub.text = "Turn a FROZEN open-source model into a ~98%-verified first-aid assistant — with inference-time compute + a deterministic verifier. Zero training."
 sub.paragraphs[0].runs[0].font.size = Pt(22); sub.paragraphs[0].runs[0].font.color.rgb = DIM
 tagb = t.shapes.add_textbox(Inches(0.95), Inches(5.4), Inches(11.6), Inches(0.6)).text_frame
-tagb.text = "Build the machine + Build the future  ·  Inference-Time Compute Hackathon 2026  ·  github.com/vnmoorthy/lifeline"
+tagb.text = "Build the machine  ·  Live app: vnmoorthy.github.io/lifeline  ·  github.com/vnmoorthy/lifeline"
 tagb.paragraphs[0].runs[0].font.size = Pt(14); tagb.paragraphs[0].runs[0].font.color.rgb = BLUE
 t.notes_slide.notes_text_frame.text = ("Hook: Everyone's instinct for a safety-critical task is fine-tune. We trained nothing. "
     "We took a frozen open model and spent inference-time compute, then verified. Build as if compute is free, then verify.")
@@ -137,7 +137,7 @@ slide("Presentation & demo", "Live: talk to it, watch it spend compute, watch it
       ["Easy case ('he collapsed, not breathing') → verifies on try 1, speaks CPR steps instantly.",
        "Hard case ('boiling water on her arm') → escalates best-of-N, early-exits when one verifies.",
        "Money moment: a fluent WRONG answer an LLM-judge would accept → verifier rejects → falls back to protocol.",
-       "Live site: the accuracy-vs-compute dashboard + the verifier-vs-judge result."],
+       "Live: vnmoorthy.github.io/lifeline (talkable voice app) + /dashboard.html (curves + verifier-vs-judge)."],
       accent=BLUE,
       notes="Show the app live (mock_ui), then the dashboard. End on the fluent-wrong rejection.")
 
@@ -153,9 +153,9 @@ slide("Impact & trajectory", "If this works at scale: reliable open models for s
 # 9 — Close
 slide("Recap", "Frozen open model + inference-time compute + deterministic verification",
       ["79.6% → 98.45% verified, model-agnostic, zero training.",
-       "0 unsafe leaks on the adversarial set — fluent-but-wrong gets rejected, every time.",
-       "Code, dashboard, and demo: github.com/vnmoorthy/lifeline",
-       "Build as if compute is free — then verify."],
+       "0 unsafe leaks on the 42-candidate adversarial set — 12/12 fluent-but-dangerous answers rejected.",
+       "Live app: vnmoorthy.github.io/lifeline   ·   Dashboard: vnmoorthy.github.io/lifeline/dashboard.html",
+       "Code: github.com/vnmoorthy/lifeline   ·   Build as if compute is free, then verify."],
       accent=RED,
       notes="Close confident: this is how you optimize a frozen open model to its limit.")
 
