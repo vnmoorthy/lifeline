@@ -3,7 +3,9 @@
 A voice-first first-aid assistant that **spends inference-time compute to be sure it's right**, and
 **never speaks an unverified step**. Built on Google's **DiffusionGemma** (real block-diffusion model).
 
-*Decision support, not a medical device. Always call 911.* · **Track:** Real-Time & Interactive
+**🔴 Live app:** https://vnmoorthy.github.io/lifeline/  ·  **📊 Results dashboard:** https://vnmoorthy.github.io/lifeline/dashboard.html
+
+*Decision support, not a medical device. Always call 911.* · **Track:** Build the machine + Build the future
 
 ---
 
