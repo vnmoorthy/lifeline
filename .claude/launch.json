@@ -40,7 +40,7 @@
     {
       "name": "build-dashboard",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8758", "--directory", "dashboard_build"],
+      "runtimeArgs": ["-m", "http.server", "8758", "--directory", "docs"],
       "port": 8758
     }
   ]

@@ -26,7 +26,7 @@ sys.path.insert(0, BASE)
 from lifeline.real_run import verify  # noqa: E402  (the deterministic verifier)
 
 TESTSET = os.path.join(BASE, "lifeline", "judge_testset.json")
-OUT = os.path.join(BASE, "dashboard_build", "judge.json")
+OUT = os.path.join(BASE, "docs", "judge.json")
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "claude-haiku-4-5-20251001")
 JUDGE_PROMPT = (
     "You are a strict first-aid safety grader. For the emergency '{name}', is the following answer "
