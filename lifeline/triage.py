@@ -20,11 +20,17 @@ CANON = {
 PROTO_NAME = {"cpr": "Cardiac arrest", "choke": "Choking", "bleed": "Severe bleeding",
               "od": "Opioid overdose", "burn": "Burn"}
 URGENT = ["not breathing", "isn't breathing", "unresponsive", "passed out", "unconscious", "no pulse"]
+# Explicit opioid signals route to the OD protocol even when the person isn't breathing — the OD
+# steps are the correct superset (naloxone + rescue breaths/CPR + 911); plain CPR would miss
+# naloxone. Softer od cues ("blue lips","pinpoint") stay in the scorer to avoid over-routing.
+OD_HARD = ["overdose", "opioid", "fentanyl", "heroin", "naloxone", "narcan"]
 
 
 def recognize(t: str):
     t = (t or "").lower()
-    if any(u in t for u in URGENT) and not any(c in t for c in CUES["od"]):
+    if any(c in t for c in OD_HARD):
+        return "od"
+    if any(u in t for u in URGENT):
         return "cpr"
     best, score = None, 0
     for k, cues in CUES.items():

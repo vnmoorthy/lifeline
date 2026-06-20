@@ -73,10 +73,33 @@ MAX_N = 16
 PER_SAMPLE_MS = 45  # parallel best-of-N: wall-clock ~ one sample; this is a per-sample proxy
 
 
+# negation tokens that neutralize a forbidden phrase — "do NOT apply ice" is correct advice,
+# not a dangerous instruction. Without this, the verifier rejects good answers and even the
+# canonical fallback ("do not apply ice or butter") fails to verify.
+_NEG = ("not ", "n't", "never", "avoid", "without")
+
+
+def _clause_start(t: str, i: int) -> int:
+    """Start index of the clause containing position i (split on . ; newline, NOT commas, so a
+    negation scopes over a whole coordinated clause: 'never apply butter or toothpaste')."""
+    return max((t.rfind(b, 0, i) + 1) for b in ".;\n")
+
+
+def _forbidden(t: str, phrases) -> bool:
+    """True only if a dangerous phrase appears in a clause with no negation before it."""
+    for f in phrases:
+        i = t.find(f)
+        while i != -1:
+            if not any(n in t[_clause_start(t, i):i] for n in _NEG):
+                return True
+            i = t.find(f, i + 1)
+    return False
+
+
 def verify(text: str, proto_key: str) -> bool:
     t = text.lower()
     p = PROTO[proto_key]
-    if any(f in t for f in p["forbid"]):
+    if _forbidden(t, p["forbid"]):
         return False
     return all(any(syn in t for syn in grp) for grp in p["require"])
 

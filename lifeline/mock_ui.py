@@ -17,8 +17,10 @@ from lifeline.triage import recognize, CANON, PROTO_NAME  # noqa: E402
 from lifeline.ui_page import PAGE  # noqa: E402
 
 PORT = int(os.environ.get("LIFELINE_PORT", "8090"))
-# measured single-try verify rates on DiffusionGemma (from the real runs) -> realistic mock
-DIFFICULTY = {"cpr": 1, "choke": 1, "bleed": 1, "od": 1, "burn": 6}
+# Illustrative per-case difficulty for the UI preview only (how many tries the effort-manager
+# spends). Real verify rates are re-measured on the GPU with the fixed negation-aware verifier;
+# burn was previously over-counted because correct "do not apply ice" answers were wrongly rejected.
+DIFFICULTY = {"cpr": 1, "choke": 1, "bleed": 1, "od": 1, "burn": 4}
 
 
 def mock_answer(text: str) -> dict:
