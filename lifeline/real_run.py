@@ -37,9 +37,11 @@ PROTO = {
         "forbid": ["give them water", "give water", "induce vomiting", "slap them awake"]},
     "choke": {"require": [
         ["911", "emergency service", "999", "112", "call for help"],
-        ["back blow", "abdominal thrust", "heimlich", "thrust"]],
+        ["back blow", "blows between the shoulder", "blows to the back"],
+        ["abdominal thrust", "abdominal thrusts", "heimlich", "thrusts"]],
         "forbid": ["blind finger sweep", "lay them flat and press on the stomach"]},
     "bleed": {"require": [
+        ["911", "emergency service", "999", "112", "call for help", "ambulance"],
         ["direct pressure", "apply pressure", "press on the wound", "firm pressure", "press firmly",
          "apply firm", "pressure to the wound", "pressure on the wound", "applying pressure",
          "tourniquet", "elevate the"]],
@@ -51,7 +53,8 @@ PROTO = {
         "forbid": ["cold shower", "induce vomiting", "let them sleep it off"]},
     "burn": {"require": [
         ["cool running water", "cool water", "cold water", "running water", "under water", "under cool", "under cold",
-         "cool the burn", "cool the area", "run it under", "running it under", "rinse", "cool it", "lukewarm water", "cool, running"]],
+         "cool the burn", "cool the area", "run it under", "running it under", "rinse", "cool it", "lukewarm water", "cool, running"],
+        ["cover", "dressing", "bandage", "clean cloth", "do not apply ice", "don't apply ice", "loosely", "seek medical", "non-stick"]],
         "forbid": ["apply ice", "put ice", "apply butter", "toothpaste"]},
     "anaphylaxis": {"require": [
         ["911", "emergency services", "emergency number", "999", "112", "call for help"],

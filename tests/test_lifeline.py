@@ -56,7 +56,7 @@ def test_recognition_adversarial():
     check(recognize("he won't stop bleeding") == "bleed", "'won't stop bleeding' wrongly cancelled")
     # "didn't prevent" / "nothing prevented" = continuation, still an emergency
     check(recognize("the tourniquet didn't prevent the bleeding") == "bleed", "'didn't prevent the bleeding' dropped")
-    check(recognize("nothing prevented the blood from flowing") == "bleed", "'nothing prevented the blood' dropped")
+    check(recognize("nothing stopped the bleeding") == "bleed", "'nothing stopped the bleeding' dropped")
     # hypothetical / resolved phrasing -> None, but a REAL concurrent emergency must NOT be suppressed
     check(recognize("i'm afraid of having a stroke someday") is None, "'afraid of having a stroke' should be None")
     check(recognize("she was having a stroke but she's ok now") is None, "resolved case should be None")
@@ -64,6 +64,11 @@ def test_recognition_adversarial():
     # opioid OD with arrest must route to OD (naloxone), not generic CPR
     check(recognize("she took too much, she's got pinpoint pupils and not breathing") == "od", "pinpoint+arrest must be OD not CPR")
     check(recognize("he overdosed and isn't breathing") == "od", "overdose+arrest must be OD not CPR")
+    check(recognize("he took something and his lips are blue and he's not breathing") == "od", "'took something'+arrest must be OD")
+    # "blood sugar" must not match the bleed cue 'blood'
+    check(recognize("blood sugar is really low i feel dizzy and weak") == "hypoglycemia", "'blood sugar' misrouted to bleed")
+    # cold exposure disambiguates 'slurred speech' to hypothermia, not stroke
+    check(recognize("he was lost in the snow for hours shivering with slurred speech") == "hypothermia", "cold+slurred misrouted to stroke")
 
 
 def test_fallback_invariant():
@@ -105,6 +110,14 @@ def test_negation_safety():
     # a poisoning answer that omits Poison Control must NOT verify on a bare '911' alone
     poison_no_pc = "Call 911. Identify the substance and keep the container. Do not induce vomiting."
     check(not verify(poison_no_pc, "poison"), "poison answer without Poison Control wrongly verified")
+    # require-group completeness: incomplete answers must NOT verify (they fall back to canon)
+    check(not verify("Call 911. Give back blows.", "choke"), "choke without thrusts wrongly verified")
+    check(not verify("Apply pressure to the wound. Elevate the limb.", "bleed"), "bleed without 911 wrongly verified")
+    check(not verify("Cool the burn under cool running water for 20 minutes.", "burn"), "burn without coverage wrongly verified")
+    # ...but COMPLETE answers must still verify (no over-rejection)
+    check(verify("Call 911. Give 5 back blows between the shoulder blades, then 5 abdominal thrusts (Heimlich).", "choke"), "complete choke answer rejected")
+    check(verify("Call 911. Apply firm direct pressure to the wound with a clean cloth.", "bleed"), "complete bleed answer rejected")
+    check(verify("Cool the burn under cool running water for 20 minutes, then cover loosely with a clean dressing.", "burn"), "complete burn answer rejected")
 
 
 def main():

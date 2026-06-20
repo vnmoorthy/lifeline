@@ -13,7 +13,11 @@ CUES = {
     "cpr":        ["cardiac", "cardiac arrest", "chest compressions", "heart stopped", "no pulse"],
     "choke":      ["choking", "choke", "something stuck in", "object stuck", "stuck in his throat",
                    "stuck in her throat", "stuck in their throat", "lodged in", "can't swallow"],
-    "bleed":      ["bleeding", "blood", "cut", "wound", "gushing", "spurting", "hemorrhage", "laceration"],
+    "bleed":      ["bleeding heavily", "bleeding", "bleeding from", "deep cut", "cut", "wound", "gushing",
+                   "spurting", "hemorrhage", "laceration", "lots of blood", "lot of blood", "so much blood",
+                   "losing blood", "losing a lot of blood", "covered in blood", "blood everywhere",
+                   "pool of blood", "blood soaking", "blood gushing", "blood spurting", "blood pouring",
+                   "blood coming", "blood running", "blood dripping"],  # NOT bare "blood" (false-matched "blood sugar")
     "od":         ["overdose", "overdosed", "blue lips", "lips are blue", "lips turning blue", "pinpoint", "opioid", "opioids"],
     "burn":       ["burn", "burned", "burnt", "scald", "boiling water", "steam", "hot water", "caught fire", "on fire"],
     "anaphylaxis": ["allergic reaction", "anaphylaxis", "anaphylactic", "epipen", "epi pen", "epinephrine",
@@ -140,10 +144,17 @@ OD_HARD = ["opioid", "opioids", "fentanyl", "heroin", "naloxone", "narcan", "pin
 # Softer overdose signals: route to OD only when the person is also in arrest/unresponsive — there
 # the OD protocol (naloxone + rescue breaths + CPR + recovery position) is the correct superset, and
 # empiric naloxone is harmless if it turns out non-opioid. Conscious ingestion stays poison/scoring.
-OD_SOFT = ["overdose", "overdosed", "took too much", "od'd"]
+OD_SOFT = ["overdose", "overdosed", "took too much", "took something", "od'd"]
 DROWN_CUES = ["drowning", "drowned", "out of the pool", "pulled out of the pool", "out of the water",
               "fell in the pool", "fell in the water", "face down in the water", "out of the lake",
               "out of the ocean", "pulled from the water"]
+# Cold-exposure context: 'slurred speech' is both a stroke and a hypothermia sign — a clear cold
+# source disambiguates to hypothermia (guarded by 'not arrest', so a not-breathing victim pulled
+# from freezing water still goes down the CPR/arrest path).
+COLD_EXPOSURE = ["hypothermia", "frostbite", "in the snow", "lost in the snow", "out in the cold",
+                 "in the cold for", "ice cold", "cold to the touch", "fell into freezing",
+                 "fell into a freezing", "freezing water", "freezing cold", "freezing lake",
+                 "exposed to the cold", "stranded in the cold"]
 ARREST = ["not breathing", "isn't breathing", "isnt breathing", "stopped breathing", "no pulse"]
 DOWN = ["unconscious", "unresponsive", "passed out", "collapsed", "won't wake", "wont wake",
         "not responding", "won't respond", "wont respond", "blacked out", "went limp", "fainted"]
@@ -204,6 +215,8 @@ def recognize(t: str):
         return "od"
     if any(_present(t, c) for c in DROWN_CUES):
         return "drown"
+    if any(c in t for c in COLD_EXPOSURE) and not any(_present(t, a) for a in ARREST):
+        return "hypothermia"
     # 2) Nosebleed: nose + blood, before generic "bleeding" routes to severe-bleed.
     if "nose" in t and ("bleed" in t or "blood" in t):
         return "nosebleed"
