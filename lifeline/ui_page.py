@@ -1,92 +1,101 @@
 """The polished Lifeline UI (single source of truth, no deps). Used by the real product
 (diffusion_server) and the local preview (mock_ui). Talks to POST /ask.
 
-Designed for a real emergency: large text, high contrast, screen-reader live regions,
-reduced-motion support, a one-tap Call-911 link, and Repeat/Start-over controls."""
+Designed for a real emergency: large legible type, calm-clinical dark theme with urgent accents,
+screen-reader live regions, reduced-motion support, one-tap Call-911, Repeat + Start-over, and a
+visible inference-time-compute panel (candidate cells + progress track)."""
 
 PAGE = r"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0a0e13">
+<meta name="theme-color" content="#0a0f15">
 <title>Lifeline — verified first aid</title><style>
 :root{
- --bg:#0a0e13;--bg2:#0e141c;--panel:#141b24;--line:#222d3a;--text:#eef3f8;--dim:#93a1b2;
- --red:#ff4d4d;--red2:#c81e1e;--green:#39d353;--amber:#e3b341;--accent:#5cabff;
- --shadow:0 8px 30px rgba(0,0,0,.45);--r:16px;
+ --bg:#0a0f15;--panel:#111a24;--card:#0f1722;--line:#1e2a37;--line2:#2a3a4c;
+ --text:#eaf1f8;--dim:#8fa0b2;--red:#e5484d;--red2:#c52f33;--green:#34d399;--amber:#f5b942;--accent:#5cc8ff;
+ --r:14px;--rl:18px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#11202f 0,var(--bg) 60%);color:var(--text);
- font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100%}
-.wrap{max-width:560px;margin:0 auto;padding:max(22px,env(safe-area-inset-top)) 18px 56px}
-.top{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:2px}
-.logo{font-size:22px;font-weight:800;letter-spacing:-.3px}
-.logo b{color:var(--red)}
-.sub{text-align:center;color:var(--dim);font-size:13.5px;margin-bottom:20px}
-.call911{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:420px;margin:0 auto 16px;
- text-decoration:none;background:linear-gradient(180deg,#ff5b5b,#d11f1f);color:#fff;font-weight:800;font-size:16px;
- padding:13px;border-radius:12px;box-shadow:0 6px 18px rgba(255,77,77,.3)}
+html,body{margin:0;background:var(--bg);color:var(--text);min-height:100%;
+ font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:540px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 18px 56px}
+.brand{display:flex;align-items:center;gap:9px;justify-content:center;margin-bottom:6px}
+.mark{width:26px;height:26px;border-radius:8px;background:var(--red);color:#fff;font-size:17px;
+ display:flex;align-items:center;justify-content:center;font-weight:700}
+.name{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.sub{text-align:center;color:var(--dim);font-size:13px;line-height:1.5;margin:0 6px 16px}
+.call911{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:430px;margin:0 auto 18px;
+ text-decoration:none;background:var(--red);color:#fff;font-weight:700;font-size:16px;padding:13px;border-radius:var(--r)}
 .call911:active{transform:scale(.99)}
-.mic-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
-.mic{width:132px;height:132px;border-radius:50%;border:0;cursor:pointer;color:#fff;font-size:15px;font-weight:700;
- background:radial-gradient(circle at 50% 35%,var(--red),var(--red2));box-shadow:var(--shadow),0 0 0 0 rgba(255,77,77,.5);
- display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;transition:transform .1s}
+.mic-wrap{display:flex;flex-direction:column;align-items:center;gap:13px}
+.mic{position:relative;width:122px;height:122px;border-radius:50%;border:0;cursor:pointer;color:#fff;
+ font-size:14px;font-weight:700;background:var(--red);display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:6px;transition:transform .1s}
 .mic:active{transform:scale(.96)}
-.mic:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
-.mic .ico{font-size:36px}
-.mic.listening{animation:pulse 1.3s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,77,77,.55)}70%{box-shadow:0 0 0 26px rgba(255,77,77,0)}100%{box-shadow:0 0 0 0 rgba(255,77,77,0)}}
-.or{color:var(--dim);font-size:12px;letter-spacing:.5px}
-.row{display:flex;gap:8px;width:100%;max-width:420px}
-input{flex:1;padding:14px;border-radius:12px;border:1px solid var(--line);background:#0b1118;color:var(--text);font-size:16px}
+.mic:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+.mic .ico{font-size:32px}
+.mic::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:2px solid var(--red);opacity:0}
+.mic.listening::after{animation:ring 1.7s ease-out infinite}
+@keyframes ring{0%{transform:scale(.9);opacity:.6}100%{transform:scale(1.28);opacity:0}}
+.or{color:var(--dim);font-size:11.5px;letter-spacing:.5px}
+.row{display:flex;gap:8px;width:100%;max-width:430px}
+input{flex:1;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:#0c131b;color:var(--text);font-size:16px}
 input:focus{outline:none;border-color:var(--accent)}
-.send{border:0;border-radius:12px;padding:0 20px;font-weight:700;background:#1c2734;color:var(--text);cursor:pointer;font-size:15px}
+.send{border:0;border-radius:12px;padding:0 18px;font-weight:700;background:#1b2735;color:var(--text);cursor:pointer;font-size:15px}
 .send:focus-visible,.act:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
-.chip{font-size:12.5px;color:var(--dim);background:#10171f;border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer}
+.send:disabled,.mic:disabled{opacity:.5}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:15px}
+.chip{font-size:12.5px;color:var(--dim);background:#0c131b;border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer}
 .chip:hover,.chip:focus-visible{border-color:var(--accent);color:var(--text);outline:none}
-.you{margin:22px 0 6px;font-size:18px;text-align:center}.you b{color:#fff}
+.you{margin:22px 0 12px;font-size:18px;font-weight:600;text-align:center;line-height:1.4}
 .stage{display:none}
-.statusbar{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:10px 0}
-.pill{font-size:12.5px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:#10171f;color:var(--dim)}
-.pill.proto{color:#fff;border-color:#2b3a4b}
-.pill.routine{color:var(--green);border-color:rgba(57,211,83,.35)}
-.pill.moderate{color:var(--amber);border-color:rgba(227,179,65,.35)}
-.pill.critical{color:var(--red);border-color:rgba(255,77,77,.4)}
-.pill.verified{background:rgba(57,211,83,.12);color:var(--green);border-color:rgba(57,211,83,.4)}
-.pill.fallback{background:rgba(227,179,65,.12);color:var(--amber);border-color:rgba(227,179,65,.4)}
-.engine{background:linear-gradient(180deg,#101822,#0d141c);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-top:6px}
-.engine .lbl{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;display:flex;justify-content:space-between;gap:8px}
-.dots{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px}
-.dot{width:16px;height:16px;border-radius:5px;background:#1d2a38;opacity:.25;transform:scale(.6);transition:.25s}
+.statusbar{display:flex;gap:7px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.pill{font-size:12.5px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:#0c131b;color:var(--dim);
+ display:inline-flex;align-items:center;gap:6px}
+.pill.proto{color:#fff;border-color:var(--line2)}
+.pill.routine::before,.pill.moderate::before,.pill.critical::before{content:"";width:7px;height:7px;border-radius:50%}
+.pill.routine{color:var(--green)}.pill.routine::before{background:var(--green)}
+.pill.moderate{color:var(--amber)}.pill.moderate::before{background:var(--amber)}
+.pill.critical{color:var(--red)}.pill.critical::before{background:var(--red)}
+.pill.verified{background:rgba(52,211,153,.12);color:var(--green);border-color:rgba(52,211,153,.4)}
+.pill.fallback{background:rgba(245,185,66,.12);color:var(--amber);border-color:rgba(245,185,66,.4)}
+.engine{background:var(--panel);border:1px solid var(--line);border-radius:var(--rl);padding:14px 16px;margin-bottom:12px}
+.engine .lbl{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;gap:8px}
+.dots{display:flex;gap:6px;flex-wrap:wrap;margin:11px 0 0}
+.dot{width:18px;height:18px;border-radius:5px;background:#1a2530;opacity:.4;transform:scale(.7);transition:.22s}
 .dot.in{opacity:1;transform:scale(1)}
 .dot.ok{background:var(--green)}.dot.bad{background:var(--red2)}
-.shim{height:3px;border-radius:2px;margin-top:8px;background:linear-gradient(90deg,#1d2a38,#2b6cb0,#1d2a38);background-size:200% 100%;animation:sh 1.1s linear infinite;opacity:0}
-.shim.on{opacity:1}@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.steps{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:6px 8px 10px;margin-top:12px;box-shadow:var(--shadow)}
-.steps .h{display:flex;align-items:center;gap:8px;padding:12px 12px 6px;color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
-.step{display:flex;gap:12px;align-items:flex-start;padding:12px;border-top:1px solid var(--line);opacity:0;transform:translateY(8px);transition:.35s}
+.track{position:relative;height:4px;border-radius:3px;background:#1a2530;margin-top:12px;overflow:hidden}
+.track.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(92,200,255,.5),transparent);
+ background-size:50% 100%;animation:sh 1.1s linear infinite}
+@keyframes sh{0%{background-position:-100% 0}100%{background-position:200% 0}}
+.fill{height:100%;width:0;background:var(--accent);border-radius:3px;transition:width .25s}
+.steps{display:flex;flex-direction:column;gap:9px;list-style:none;margin:0;padding:0}
+.stepsh{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:2px 2px 10px}
+.step{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+ border-radius:var(--r);padding:13px 14px;opacity:0;transform:translateY(7px);transition:.32s}
 .step.in{opacity:1;transform:none}
-.step:first-of-type{border-top:0}
-.num{flex:0 0 28px;height:28px;border-radius:50%;background:#192633;color:var(--accent);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
-.step .txt{font-size:18.5px;line-height:1.45;padding-top:2px}
-.actions{display:flex;gap:8px;margin-top:12px}
-.act{flex:1;border:1px solid var(--line);background:#141d28;color:var(--text);border-radius:12px;padding:12px;font-weight:700;font-size:14px;cursor:pointer}
+.num{flex:0 0 26px;height:26px;border-radius:50%;background:#10202e;color:var(--accent);font-weight:700;
+ display:flex;align-items:center;justify-content:center;font-size:14px}
+.step .txt{font-size:17.5px;line-height:1.45;padding-top:2px}
+.actions{display:flex;gap:8px;margin-top:14px}
+.act{flex:1;border:1px solid var(--line2);background:#13202d;color:#cfe3f5;border-radius:12px;padding:12px;
+ font-weight:700;font-size:14px;cursor:pointer}
 .act:active{transform:scale(.99)}
-.act.primary{background:#16324a;border-color:#27506f;color:#cfe6ff}
-.note{margin-top:12px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.5}
-.foot{margin-top:22px;text-align:center;color:var(--dim);font-size:12px;line-height:1.6}
+.note{margin-top:13px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.5}
+.foot{margin-top:22px;text-align:center;color:var(--dim);font-size:11.5px;line-height:1.6}
 .foot b{color:#aeb9c6;font-weight:600}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 @media (prefers-reduced-motion:reduce){
  *{animation:none!important}
- .mic.listening{box-shadow:var(--shadow),0 0 0 6px rgba(255,77,77,.35)}
- .dot{transition:none;opacity:1;transform:none}.step{transition:none;opacity:1;transform:none}.shim{display:none}
+ .dot{transition:none;opacity:1;transform:none}.step{transition:none;opacity:1;transform:none}
+ .track.on::after{display:none}.fill{transition:none}
 }
 </style></head><body>
 <a class="sr" href="#main">Skip to content</a>
 <div class="wrap">
-<header class="top"><div class="logo"><b>✚</b> Lifeline</div></header>
-<p class="sub">Hands-free first aid — verified against official protocols, on-device DiffusionGemma.</p>
-<a class="call911" href="tel:911" aria-label="Call 911 emergency services now">📞 Call 911</a>
+<header class="brand"><span class="mark" aria-hidden="true">✚</span><span class="name">Lifeline</span></header>
+<p class="sub">Hands-free first aid — every step verified against official protocols before it's spoken.</p>
+<a class="call911" href="tel:911" aria-label="Call 911 emergency services now"><span aria-hidden="true">📞</span> Call 911</a>
 
 <main id="main" class="mic-wrap">
  <button class="mic" id="mic" aria-label="Tap and describe the emergency by voice"><span class="ico" aria-hidden="true">🎙️</span><span id="miclbl">Tap &amp; speak</span></button>
@@ -101,17 +110,17 @@ input:focus{outline:none;border-color:var(--accent)}
  <div class="engine" role="status" aria-live="polite">
    <div class="lbl"><span id="elbl">Generating verified guidance…</span><span id="ecount"></span></div>
    <div class="dots" id="dots" aria-hidden="true"></div>
-   <div class="shim" id="shim"></div>
+   <div class="track" id="shim"><div class="fill" id="fill"></div></div>
  </div>
- <div class="steps" id="stepsCard" style="display:none">
-   <div class="h" id="stepsH">First-aid steps</div>
-   <ol id="steps" style="margin:0;padding:0;list-style:none" aria-live="polite"></ol>
+ <div id="stepsCard" style="display:none">
+   <div class="stepsh" id="stepsH">First-aid steps</div>
+   <ol id="steps" class="steps" aria-live="polite"></ol>
  </div>
  <div class="actions" id="actions" style="display:none">
-   <button class="act primary" id="repeat">🔊 Repeat steps</button>
+   <button class="act" id="repeat">🔊 Repeat steps</button>
    <button class="act" id="reset">↺ Start over</button>
  </div>
- <p class="note">This is decision support, not a replacement for emergency services. Call 911 for any serious emergency.</p>
+ <p class="note">Decision support, not a replacement for emergency services. Call 911 for any serious emergency.</p>
 </section>
 
 <p class="foot">Powered by <b>Google DiffusionGemma</b> · every step <b>checked against official protocols</b> before it's spoken · never an unverified instruction.</p>
@@ -135,12 +144,12 @@ async function ask(text){
   $('txt').blur();$('go').disabled=true;$('mic').disabled=true;
   try{
     try{speechSynthesis.cancel();}catch(e){}
-    $('you').innerHTML='“ <b>'+text+'</b> ”';
+    $('you').innerHTML='“ '+text+' ”';
     $('stage').style.display='block';
     $('actions').style.display='none';
     $('status').innerHTML='<span class="pill">recognizing…</span>';
     $('elbl').textContent='Generating verified guidance…';$('ecount').textContent='';
-    $('dots').innerHTML='';$('shim').classList.add('on');
+    $('dots').innerHTML='';$('fill').style.width='0';$('shim').classList.add('on');
     $('stepsCard').style.display='none';$('steps').innerHTML='';
     announce('Working on it.');
     let r;
@@ -169,7 +178,7 @@ async function ask(text){
     const cands=r.candidates&&r.candidates.length?r.candidates:[{ok:true}];
     if(REDUCED){
       cands.forEach(c=>{const d=document.createElement('div');d.className='dot in '+(c.ok?'ok':'bad');$('dots').appendChild(d);});
-      $('ecount').textContent=cands.length+(cands.length>1?' tries':' try');
+      $('ecount').textContent=cands.length+(cands.length>1?' tries':' try');$('fill').style.width='100%';
     }else{
       for(let i=0;i<cands.length;i++){
         const d=document.createElement('div');d.className='dot';$('dots').appendChild(d);
@@ -177,6 +186,7 @@ async function ask(text){
         await sleep(90);
         d.classList.add(cands[i].ok?'ok':'bad');
         $('ecount').textContent=(i+1)+(i+1>1?' tries':' try');
+        $('fill').style.width=Math.round((i+1)/cands.length*100)+'%';
       }
     }
     $('shim').classList.remove('on');
@@ -200,7 +210,7 @@ function renderSteps(arr){
     const row=document.createElement('li');row.className='step';
     row.innerHTML=`<div class="num" aria-hidden="true">${i+1}</div><div class="txt">${s}</div>`;
     box.appendChild(row);
-    if(REDUCED)row.classList.add('in');else setTimeout(()=>row.classList.add('in'),150*i);
+    if(REDUCED)row.classList.add('in');else setTimeout(()=>row.classList.add('in'),140*i);
   });
 }
 function resetAll(){
