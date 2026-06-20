@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8753", "--directory", "dashboard"],
       "port": 8753
+    },
+    {
+      "name": "nozzle-dashboard",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8754", "--directory", "dashboard_nozzle"],
+      "port": 8754
     }
   ]
 }

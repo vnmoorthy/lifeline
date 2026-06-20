@@ -8,9 +8,11 @@ __pycache__/
 .venv/
 venv/
 
-# generated demo artifacts (regenerate with: python3 pipeline.py)
+# generated demo artifacts (regenerate with: python3 pipeline.py / python3 -m nozzle.run)
 dashboard/results.json
+dashboard_nozzle/
 data/orders_raw.csv
+data/nozzle.db
 
 # real Devin trajectory banks can be large; keep a small committed sample if you like
 # data/devin_runs/
