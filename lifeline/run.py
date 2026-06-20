@@ -15,6 +15,7 @@ import json
 import os
 import random
 import statistics
+from concurrent.futures import ThreadPoolExecutor
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
@@ -28,35 +29,51 @@ from lifeline.controller import (                                       # noqa: 
 )
 
 PASSES_GRID = [1, 2, 4, 8, 16, 24]
+BIG_GRID = [1, 2, 4, 8, 16, 32, 64, 128]   # wide sweep to reveal the full curve + the knee
 
 
-def fixed_curve(backend, resamples, seed=3):
+def _pmap(fn, items, backend, workers):
+    """Sequential for the (free, deterministic) mock; concurrent for the real model so
+    vLLM batches our requests across all 8 GPUs."""
+    items = list(items)
+    if backend == "mock":
+        return [fn(x) for x in items]
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        return list(ex.map(fn, items))
+
+
+def fixed_curve(backend, resamples, grid, workers, seed=3):
     rng = random.Random(seed)
     acc = {}
-    for k in PASSES_GRID:
+    for k in grid:
         per = []
         for sc in SCENARIOS:
             proto = PROTOCOL_BY_SCENARIO[sc["id"]]
-            hits = [1.0 if is_correct(generate(sc, proto, k, backend=backend, rng=rng), proto) else 0.0
-                    for _ in range(resamples)]
-            per.append(statistics.mean(hits))
+
+            def one(_, sc=sc, proto=proto, k=k):
+                return 1.0 if is_correct(generate(sc, proto, k, backend=backend, rng=rng), proto) else 0.0
+
+            per.append(statistics.mean(_pmap(one, range(resamples), backend, workers)))
         acc[k] = round(statistics.mean(per), 4)
     return acc
 
 
-def controller_eval(backend, resamples, seed=7):
-    rng = random.Random(seed)
+def controller_eval(backend, resamples, workers, seed=7):
     gen = lambda sc, pr, k, r: generate(sc, pr, k, backend=backend, rng=r)
     accs, passes_used, per_scenario = [], [], []
     for sc in SCENARIOS:
         proto = PROTOCOL_BY_SCENARIO[sc["id"]]
-        hit, used, regimes = [], [], []
-        for _ in range(resamples):
-            p, regime, conf = decide_passes(sc, proto, is_correct, gen, rng)
-            g = gen(sc, proto, p, rng)
-            hit.append(1.0 if is_correct(g, proto) else 0.0)
-            used.append(p)
-            regimes.append(regime)
+
+        def one(i, sc=sc, proto=proto):
+            r = random.Random(seed * 100000 + i)   # per-resample rng (thread-safe)
+            p, regime, _ = decide_passes(sc, proto, is_correct, gen, r)
+            g = gen(sc, proto, p, r)
+            return (1.0 if is_correct(g, proto) else 0.0, p, regime)
+
+        res = _pmap(one, range(resamples), backend, workers)
+        hit = [x[0] for x in res]
+        used = [x[1] for x in res]
+        regimes = [x[2] for x in res]
         accs.append(statistics.mean(hit))
         passes_used.append(statistics.mean(used))
         per_scenario.append({
@@ -69,23 +86,24 @@ def controller_eval(backend, resamples, seed=7):
     return round(statistics.mean(accs), 4), round(statistics.mean(passes_used), 2), per_scenario
 
 
-def run(backend="mock", resamples=200):
+def run(backend="mock", resamples=200, big=False, workers=64):
     simulated = backend == "mock"
-    acc = fixed_curve(backend, resamples)
-    ctrl_acc, ctrl_passes, per_scenario = controller_eval(backend, max(resamples // 4, 20) if not simulated else resamples)
+    grid = BIG_GRID if big else PASSES_GRID
+    acc = fixed_curve(backend, resamples, grid, workers)
+    ctrl_acc, ctrl_passes, per_scenario = controller_eval(backend, resamples, workers)
 
-    fixed_hi = acc[PASSES_GRID[-1]]
+    fixed_hi = acc[grid[-1]]
     print(f"\n  Lifeline  [backend={backend}{'  *** SIMULATED ***' if simulated else ''}]  "
           f"{len(SCENARIOS)} emergencies, latency budget {LATENCY_BUDGET_MS}ms\n")
     print(f"  {'passes':>6} {'latency':>8} | {'fixed acc':>9}")
-    for k in PASSES_GRID:
+    for k in grid:
         print(f"  {k:>6} {latency_ms(k):>6}ms | {acc[k]:>9.3f}")
     print(f"\n  effort-manager: acc={ctrl_acc:.3f} at avg {ctrl_passes:.1f} passes "
           f"({round(ctrl_passes*PER_PASS_MS)}ms avg)")
-    print(f"  fixed best ({PASSES_GRID[-1]} passes): acc={fixed_hi:.3f} at {latency_ms(PASSES_GRID[-1])}ms")
+    print(f"  fixed best ({grid[-1]} passes): acc={fixed_hi:.3f} at {latency_ms(grid[-1])}ms")
     if fixed_hi > 0:
         print(f"  -> {ctrl_acc/fixed_hi*100:.0f}% of best accuracy using "
-              f"{ctrl_passes/PASSES_GRID[-1]*100:.0f}% of the compute, all under {LATENCY_BUDGET_MS}ms")
+              f"{ctrl_passes/grid[-1]*100:.0f}% of the compute, all under {LATENCY_BUDGET_MS}ms")
 
     data = {
         "project": "Lifeline",
@@ -95,10 +113,10 @@ def run(backend="mock", resamples=200):
         "model": os.environ.get("LIFELINE_MODEL", backend),
         "latency_budget_ms": LATENCY_BUDGET_MS,
         "per_pass_ms": PER_PASS_MS,
-        "passes_grid": PASSES_GRID,
-        "fixed_acc": [acc[k] for k in PASSES_GRID],
+        "passes_grid": grid,
+        "fixed_acc": [acc[k] for k in grid],
         "controller": {"acc": ctrl_acc, "avg_passes": ctrl_passes, "avg_latency_ms": round(ctrl_passes * PER_PASS_MS)},
-        "fixed_hi": {"passes": PASSES_GRID[-1], "acc": fixed_hi, "latency_ms": latency_ms(PASSES_GRID[-1])},
+        "fixed_hi": {"passes": grid[-1], "acc": fixed_hi, "latency_ms": latency_ms(grid[-1])},
         "scenarios": per_scenario,
     }
     out = os.path.join(BASE, "dashboard_lifeline")
@@ -183,5 +201,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--backend", default="mock", choices=["mock", "diffusion"])
     ap.add_argument("--resamples", type=int, default=200)
+    ap.add_argument("--big", action="store_true", help="wide step grid (to 128) to show the full curve + knee")
+    ap.add_argument("--workers", type=int, default=64, help="concurrent requests for the real backend")
     a = ap.parse_args()
-    run(backend=a.backend, resamples=a.resamples)
+    run(backend=a.backend, resamples=a.resamples, big=a.big, workers=a.workers)
