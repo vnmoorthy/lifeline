@@ -1,0 +1,18 @@
+# secrets
+.env
+*.key
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# generated demo artifacts (regenerate with: python3 pipeline.py)
+dashboard/results.json
+data/orders_raw.csv
+
+# real Devin trajectory banks can be large; keep a small committed sample if you like
+# data/devin_runs/
+
+.DS_Store

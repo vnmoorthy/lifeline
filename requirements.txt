@@ -1,0 +1,17 @@
+# GreenWall core runs on the Python 3 standard library ONLY — no install needed:
+#     python3 pipeline.py
+#
+# The packages below are for when you wire up the real swarm + serving (Hour 1+).
+# Install into a venv as needed; none are required for the synthetic demo.
+
+# --- model serving on the 8xH100 (pick one) ---
+# vllm>=0.6.0
+# sglang>=0.4.0
+
+# --- Devin Teams + LLM-judge (Claude tie-break) ---
+# requests>=2.31         # Devin API
+# anthropic>=0.40        # Claude judge ($50 budget)
+
+# --- real migration tasks / sandboxed execution ---
+# duckdb>=1.1            # swap in for sqlite if you want columnar speed
+# pandas>=2.2
