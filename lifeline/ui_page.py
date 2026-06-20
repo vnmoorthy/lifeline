@@ -36,8 +36,9 @@ PAGE = r"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <link rel="apple-touch-icon" href="/icon.svg">
 <title>Lifeline — verified first aid</title><style>
 :root{
- --bg:#0a0f15;--bg2:#0c131b;--panel:#111a24;--card:#0f1722;--line:#1e2a37;--line2:#2a3a4c;
- --text:#eaf1f8;--dim:#8fa0b2;--red:#e5484d;--red2:#c52f33;--green:#34d399;--amber:#f5b942;--accent:#5cc8ff;
+ --bg:#0b0e14;--bg2:#131a24;--panel:#141c27;--card:#161f2b;--line:#232f3f;--line2:#2c3a4d;
+ --text:#eef3f9;--dim:#94a2b4;--red:#e5484d;--red2:#b23a3e;--green:#35d6a0;--amber:#f3b340;
+ --accent:#5c9dff;--primary:#5c9dff;--primary-ink:#06101f;
  --r:14px;--rl:18px;--fstep:17.5px;--fbody:18px;--spring:cubic-bezier(.2,.8,.2,1);
  --sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom);
 }
@@ -76,11 +77,11 @@ input:focus{outline:none;border-color:var(--accent)}
 .send:active{transform:scale(.97)}
 .send:disabled,.mic:disabled{opacity:.5}
 .micwrap{display:flex;justify-content:center;margin:12px 0 10px}
-.mic{position:relative;display:flex;align-items:center;gap:10px;border:0;cursor:pointer;color:#fff;font-size:16px;font-weight:700;
- background:var(--red);border-radius:999px;padding:15px 26px;transition:transform .12s}
-.mic svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mic{position:relative;display:flex;align-items:center;gap:10px;border:0;cursor:pointer;color:var(--primary-ink);font-size:16px;font-weight:700;
+ background:var(--primary);border-radius:999px;padding:15px 26px;transition:transform .12s}
+.mic svg{width:22px;height:22px;stroke:var(--primary-ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mic:active{transform:scale(.96)}.mic:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
-.mic::after{content:"";position:absolute;inset:-6px;border-radius:999px;border:2px solid var(--red);opacity:0}
+.mic::after{content:"";position:absolute;inset:-6px;border-radius:999px;border:2px solid var(--primary);opacity:0}
 .mic.listening::after{animation:ring 1.7s ease-out infinite}
 @keyframes ring{0%{transform:scale(.96);opacity:.55}100%{transform:scale(1.14);opacity:0}}
 .call911{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;text-decoration:none;
@@ -106,7 +107,7 @@ input:focus{outline:none;border-color:var(--accent)}
 .legend{font-size:10.5px;color:var(--dim);margin-top:8px;display:none}
 .legend .g{color:var(--green)}.legend .b{color:#c98}
 .track{position:relative;height:4px;border-radius:3px;background:#1a2530;margin-top:10px;overflow:hidden}
-.track.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(92,200,255,.5),transparent);background-size:50% 100%;animation:sh 1.1s linear infinite}
+.track.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(92,157,255,.55),transparent);background-size:50% 100%;animation:sh 1.1s linear infinite}
 @keyframes sh{0%{background-position:-100% 0}100%{background-position:200% 0}}
 .fill{height:100%;width:0;background:var(--accent);border-radius:3px;transition:width .25s}
 .steps-head{display:flex;align-items:center;margin:2px 2px 4px}
@@ -124,7 +125,7 @@ input:focus{outline:none;border-color:var(--accent)}
 .step.in{opacity:1;transform:none}.step:active{transform:scale(.99)}
 .step:hover{border-color:var(--line2)}.step.flash{border-color:var(--accent)}
 .step:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.num{flex:0 0 26px;height:26px;border-radius:50%;background:#10202e;color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.num{flex:0 0 26px;height:26px;border-radius:50%;background:rgba(92,157,255,.15);color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
 .step .txt{font-size:var(--fstep);line-height:1.45;padding-top:2px}
 .note{margin:13px 2px 4px;text-align:center;color:var(--dim);font-size:12.5px;line-height:1.5}
 .actions{display:flex;gap:8px;margin-bottom:10px}
