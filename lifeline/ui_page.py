@@ -261,6 +261,7 @@ async function ask(text){
   if(busy)return; busy=true; lastQuery=text;
   $('txt').blur();$('go').disabled=true;$('mic').disabled=true;
   showScreen('result');
+  setTimeout(()=>{try{$('back').focus();}catch(e){}},60);
   try{
     stopSpeech();
     $('you').innerHTML='“ '+text+' ”';
@@ -338,7 +339,7 @@ function renderSteps(arr){
     if(REDUCED)row.classList.add('in');else setTimeout(()=>row.classList.add('in'),130*i);
   });
 }
-function resetAll(){stopSpeech();lastSpeak='';showScreen('home');$('txt').value='';$('txt').focus();announce('Ready.');}
+function resetAll(){stopSpeech();hideListen();lastSpeak='';showScreen('home');$('txt').value='';$('txt').focus();announce('Ready.');}
 $('go').onclick=()=>ask($('txt').value);
 $('txt').addEventListener('keydown',e=>{if(e.key==='Enter')ask($('txt').value);});
 $('repeat').onclick=()=>{if($('speakind').classList.contains('on'))stopSpeech();else if(lastSpeak)speak(lastSpeak);};
@@ -348,15 +349,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){stopSpeech();if($('
 
 // immersive listening
 function showListen(){$('partial').textContent='';$('listen').classList.add('on');}
-function hideListen(){$('listen').classList.remove('on');}
+function hideListen(){$('listen').classList.remove('on');try{$('mic').focus();}catch(e){}}
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(SR){const rec=new SR();rec.lang='en-US';rec.interimResults=true;const m=$('mic');let finalT='';
- m.onclick=()=>{try{finalT='';buzz(20);rec.start();m.classList.add('listening');$('miclbl').textContent='listening…';showListen();announce('Listening.');}catch(e){}};
- $('listenX').onclick=()=>{try{rec.stop();}catch(e){}hideListen();};
+if(SR){const rec=new SR();rec.lang='en-US';rec.interimResults=true;const m=$('mic');let finalT='';let cancelled=false;
+ m.onclick=()=>{try{finalT='';cancelled=false;buzz(20);rec.start();m.classList.add('listening');$('miclbl').textContent='listening…';showListen();announce('Listening.');}catch(e){}};
+ $('listenX').onclick=()=>{cancelled=true;try{rec.stop();}catch(e){}hideListen();};
  rec.onresult=e=>{let txt='';for(let i=0;i<e.results.length;i++)txt+=e.results[i][0].transcript;$('partial').textContent=txt;
    if(e.results[e.results.length-1].isFinal){finalT=txt;}};
  rec.onerror=()=>{m.classList.remove('listening');$('miclbl').textContent='Tap & speak';hideListen();announce('Speech recognition failed. Please type instead.');};
- rec.onend=()=>{m.classList.remove('listening');$('miclbl').textContent='Tap & speak';hideListen();const t=($('partial').textContent||finalT).trim();if(t)ask(t);};
+ rec.onend=()=>{m.classList.remove('listening');$('miclbl').textContent='Tap & speak';hideListen();const t=($('partial').textContent||finalT).trim();if(!cancelled&&t)ask(t);cancelled=false;};
 }else{const m=$('mic');m.querySelector('#miclbl').textContent='Type below';m.disabled=true;m.style.opacity=.5;}
 
 // PWA
