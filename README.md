@@ -1,79 +1,70 @@
-# GreenWall 🧱
+# ✚ Lifeline — verified, hands-free emergency first aid
 
-**Verifier-gated Devin swarm — inference compute selected by math, not vibes.**
+A voice-first first-aid assistant that **spends inference-time compute to be sure it's right**, and
+**never speaks an unverified step**. Built on Google's **DiffusionGemma** (real block-diffusion model).
 
-Inference-Time Compute Hackathon · **Agents track** (built on Devin Teams).
+*Decision support, not a medical device. Always call 911.* · **Track:** Real-Time & Interactive
 
 ---
 
-## The one-sentence pitch
+## What it does
+Say what's happening ("he collapsed and isn't breathing", "my kid spilled boiling water"). Lifeline
+recognizes the emergency, generates guidance on DiffusionGemma, **verifies** each candidate against the
+official protocol, and **speaks** large numbered steps — with one-tap **Call 911** and **Repeat**.
+**17 emergencies:** cardiac arrest, choking, severe bleeding, opioid overdose, burns, anaphylaxis,
+stroke, seizure, heart attack, drowning, low blood sugar, heat stroke, hypothermia, poisoning, head
+injury, nosebleed, fracture.
 
-A single autonomous coding agent botches real data migrations ~75% of the time and
-*looks confident doing it*. GreenWall fans the task out to **N parallel Devin agents**,
-then a **deterministic, label-free Diff Oracle** — not an LLM judge — selects the one
-provably-correct migration. Accuracy climbs from **24% → 100%** as you spend more
-inference compute, while an LLM-judge selector **reward-hacks and collapses to 0%**.
+## The inference-time-compute idea
+Three compute knobs + an effort-manager that spends the *least* compute that yields a verified answer:
+1. **Denoising steps** — DiffusionGemma's quality/latency knob.
+2. **Best-of-N** — sample candidates in parallel; keep one that verifies.
+3. **Grounded verifier** — a negation-aware concept-group checker (not an LLM judge): every protocol
+   requires its essential concepts (any synonym) and forbids dangerous actions.
 
-## Why this wins (mapped to the judges' rubric)
+Easy emergency → verifies on the first try (instant). Hard → escalate best-of-N. Nothing verifies →
+fall back to the canonical protocol. **Safety invariant:** every canonical fallback itself passes the
+verifier, so the system can always emit a verified-or-canonical answer — never an unverified one.
 
-| Criterion | How GreenWall hits it |
-|---|---|
-| **Vision & Fit** | Data migrations are real, paid knowledge work that fails silently. Inference compute = a budget allocated and **verified** against it. |
-| **Technical Execution** | One frozen model. Every gain is inference compute, not training. Verifier is math (conservation invariants), runs live. |
-| **Novelty & Insight** | A **deterministic verifier synthesized from schema invariants alone, zero labels.** The LLM-judge-vs-oracle contrast (judge reward-hacks, oracle climbs) is the insight. |
-| **Impact & Trajectory** | Gets strictly **better and cheaper as tokens get cheaper** — the knee slides right. (Etched's thesis, verbatim.) |
-| **Presentation & Demo** | A live accuracy-vs-N curve + a "the judge picked the wrong-but-pretty answer" wow moment. |
+## Run it
 
-## Architecture
-
-```
-                 ┌─────────────── Gastown-style "mayor" (orchestrator) ───────────────┐
-  migration spec │   Devin #1 (Ralph loop)   Devin #2   …   Devin #N   (parallel)      │
-  + RALPH.md  ───►   each: read spec → 1 edit → self-check w/ oracle → commit → repeat  │
-                 └───────────────────────────────┬────────────────────────────────────┘
-                                                 ▼  N candidate migrations
-                        ┌──────────────── Diff Oracle (deterministic, label-free) ─────┐
-                        │  order_count · revenue · per-product revenue · FK · PK · nulls│
-                        └───────────────────────────────┬─────────────────────────────┘
-                                                 ▼  pessimistic best-of-N
-                                  selected migration  +  live accuracy-vs-N curve
-```
-
-- **8×H100** runs the oracle + sandboxed executions + reranking across many candidates.
-- **Devin ($100, `inf3r3nc3`)** is the agent swarm (bounded N to stay in budget).
-- **Claude ($50)** is used only as a tie-break critic on the rare inter-cluster tie.
-- **Prime Intellect ($100)** is burst/overflow compute.
-
-## Run it (zero dependencies — stdlib only)
-
+**Local preview — no GPU** (real UI, mock engine):
 ```bash
-python3 pipeline.py            # synthetic bank: builds curves + dashboard, no GPU/Devin needed
-open dashboard/index.html      # the demo (self-contained; double-click works too)
+python3 -m lifeline.mock_ui      # http://localhost:8090
 ```
 
-Once you've banked real Devin trajectories to `data/devin_runs/bank.json`:
-
+**Tests / pre-flight — no GPU:**
 ```bash
-python3 pipeline.py --mode replay
+./check.sh                       # syntax + recognition routing + safety invariant
+```
+
+**The real product — on a GPU** (1× A100-80GB):
+```bash
+export HF_TOKEN=hf_...            # your (rotated) token
+bash scripts/setup_diffusion_gpu.sh
+scp -r lifeline <box>:~/          # then on the box:
+python3 -m lifeline.diffusion_server         # port 8080
+# from your Mac: ssh -L 8080:localhost:8080 <box>  ->  http://localhost:8080
 ```
 
 ## Layout
+| File | Role |
+|------|------|
+| `lifeline/triage.py` | recognition (priority ladder + negation) · canonical fallback steps · names |
+| `lifeline/real_run.py` | the grounded verifier (`verify`) · protocol concept-groups · eval scenarios |
+| `lifeline/ui_page.py` | the mobile-first accessible voice UI (single source of truth) |
+| `lifeline/diffusion_server.py` | the live product on DiffusionGemma (the GPU server) |
+| `lifeline/mock_ui.py` | local GPU-free preview (same `/ask` contract) |
+| `tests/test_lifeline.py`, `check.sh` | GPU-free test gate |
+| `DEMO.md`, `DEVPOST.md` | demo storyboard + submission writeup |
+| `DIFFUSION_RESULTS.md`, `RESULTS.md` | measured results from real runs |
 
-| Path | What |
-|---|---|
-| `tasks/orders_task.py` | The migration task + gold (gold used only to *measure*, never to select). |
-| `oracle/diff_oracle.py` | **The core IP** — deterministic, label-free invariant verifier. |
-| `oracle/metrics.py` | Ground-truth accuracy (for plotting the curve only). |
-| `oracle/selection.py` | Selectors (oracle / llm_judge / majority / single_shot) + bootstrap curve. |
-| `agents/synthetic.py` | Day-one trajectory bank with realistic error modes. |
-| `agents/orchestrator.py` | Gastown "mayor": synthetic / replay / **live Devin** modes. |
-| `pipeline.py` | End-to-end run → `dashboard/`. |
-| `BUILD_PLAN.md` | The hour-by-hour 24h plan. |
+## Results (measured on DiffusionGemma)
+Denoising accuracy 12.5% (2 steps) → ~72% (16 steps); best-of-N at 16 steps lifts a protocol from
+~80% → **98.5% verified**; latency 0.5s → ~1.9s. *(Final pre-submission run re-validates all 17
+protocols with the corrected verifier.)*
 
-## The honest caveats (say these on stage — this panel rewards them)
-
-- The synthetic bank is a stand-in until real Devin trajectories are banked. The
-  *machinery* (oracle, selection, curve) is identical; only the candidate source changes.
-- `subtle_wrong` passes the hard invariants (total revenue conserved) and is only caught
-  by the **per-product** revenue signal — proof that richer invariants matter, and a
-  reminder that a verifier is only as good as its invariants.
+## How it was built
+Parallel multi-agent design (Gastown) generated + medically cross-checked the protocols; an adversarial
+critic loop (Ralph) hardened recognition and the verifier. Everything except live model accuracy is
+testable without a GPU.
