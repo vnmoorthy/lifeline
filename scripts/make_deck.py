@@ -137,7 +137,7 @@ slide("Presentation & demo", "Live: talk to it, watch it spend compute, watch it
       ["Easy case ('he collapsed, not breathing') → verifies on try 1, speaks CPR steps instantly.",
        "Hard case ('boiling water on her arm') → escalates best-of-N, early-exits when one verifies.",
        "Money moment: a fluent WRONG answer an LLM-judge would accept → verifier rejects → falls back to protocol.",
-       "Live: vnmoorthy.github.io/lifeline (talkable voice app) + /dashboard.html (curves + verifier-vs-judge)."],
+       "Live: vnmoorthy.github.io/lifeline (voice app) + vnmoorthy.github.io/lifeline/dashboard.html (results)."],
       accent=BLUE,
       notes="Show the app live (mock_ui), then the dashboard. End on the fluent-wrong rejection.")
 
