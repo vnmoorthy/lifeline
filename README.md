@@ -23,6 +23,10 @@
   <img src="https://img.shields.io/badge/track-Build_the_machine-1f2937" alt="track">
 </p>
 
+<br>
+
+<a href="https://vnmoorthy.github.io/lifeline/"><img src="assets/app-screens.svg" alt="Lifeline — home screen and a verified result" width="94%"></a>
+
 </div>
 
 > In a real emergency you can't read a web page — your hands are busy and seconds matter — and a wrong instruction can kill. **Lifeline** is a voice-first first-aid assistant you *talk to*, and every step is checked against the official protocol **before you hear it**.

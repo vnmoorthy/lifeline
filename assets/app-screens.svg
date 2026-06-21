@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 660" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f1a26"/><stop offset="1" stop-color="#080b10"/></linearGradient></defs>
+  <rect width="1120" height="660" rx="20" fill="url(#bg)"/>
+
+  <!-- ===== HOME PHONE ===== -->
+  <g>
+    <rect x="190" y="34" width="300" height="592" rx="34" fill="#0d141d" stroke="#1c2733"/>
+    <rect x="200" y="44" width="280" height="572" rx="26" fill="#0b0e14"/>
+    <!-- appbar -->
+    <rect x="222" y="64" width="22" height="22" rx="6" fill="#e5484d"/><rect x="231" y="69" width="4" height="12" rx="1" fill="#fff"/><rect x="227" y="73" width="12" height="4" rx="1" fill="#fff"/>
+    <text x="252" y="81" fill="#eef3f9" font-size="15" font-weight="700">Lifeline</text>
+    <rect x="430" y="62" width="34" height="26" rx="8" fill="#131a24" stroke="#232f3f"/><text x="447" y="80" text-anchor="middle" fill="#94a2b4" font-size="12" font-weight="700">Aa</text>
+    <!-- hero -->
+    <text x="340" y="150" text-anchor="middle" fill="#eef3f9" font-size="21" font-weight="700">What's the emergency?</text>
+    <text x="340" y="178" text-anchor="middle" fill="#94a2b4" font-size="12">Hands-free first aid — every step verified</text>
+    <text x="340" y="195" text-anchor="middle" fill="#94a2b4" font-size="12">against official protocols before it's spoken.</text>
+    <!-- chips -->
+    <g font-size="12.5" fill="#aab6c6">
+      <rect x="232" y="226" width="216" height="32" rx="16" fill="#0f1722" stroke="#232f3f"/><text x="340" y="247" text-anchor="middle">he collapsed and isn't breathing</text>
+      <rect x="258" y="266" width="164" height="32" rx="16" fill="#0f1722" stroke="#232f3f"/><text x="340" y="287" text-anchor="middle">my dad is choking on food</text>
+      <rect x="250" y="306" width="180" height="32" rx="16" fill="#0f1722" stroke="#232f3f"/><text x="340" y="327" text-anchor="middle">her arm is bleeding heavily</text>
+      <rect x="252" y="346" width="176" height="32" rx="16" fill="#0f1722" stroke="#232f3f"/><text x="340" y="367" text-anchor="middle">i think he's having a stroke</text>
+    </g>
+    <!-- dock -->
+    <rect x="216" y="470" width="180" height="40" rx="11" fill="#131a24" stroke="#232f3f"/><text x="230" y="495" fill="#6f7d8e" font-size="13">Describe what's happening…</text>
+    <rect x="404" y="470" width="60" height="40" rx="11" fill="#1b2735"/><text x="434" y="495" text-anchor="middle" fill="#eef3f9" font-size="13" font-weight="700">Ask</text>
+    <rect x="280" y="522" width="120" height="44" rx="22" fill="#5c9dff"/><circle cx="312" cy="544" r="6" fill="#06101f"/><rect x="309" y="540" width="6" height="11" rx="3" fill="#06101f"/><text x="345" y="549" text-anchor="middle" fill="#06101f" font-size="14" font-weight="700">Tap &amp; speak</text>
+    <rect x="216" y="576" width="248" height="32" rx="11" fill="#e5484d"/><text x="340" y="597" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">📞  Call 911</text>
+  </g>
+
+  <!-- ===== RESULT PHONE ===== -->
+  <g>
+    <rect x="630" y="34" width="300" height="592" rx="34" fill="#0d141d" stroke="#1c2733"/>
+    <rect x="640" y="44" width="280" height="572" rx="26" fill="#0b0e14"/>
+    <!-- appbar -->
+    <rect x="660" y="62" width="30" height="26" rx="8" fill="#131a24" stroke="#232f3f"/><path d="M682 70 l-7 5 l7 5" fill="none" stroke="#94a2b4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="755" y="64" width="20" height="20" rx="6" fill="#e5484d"/><rect x="763" y="68" width="4" height="11" rx="1" fill="#fff"/><rect x="759" y="72" width="12" height="4" rx="1" fill="#fff"/>
+    <text x="782" y="80" fill="#eef3f9" font-size="14" font-weight="700">Lifeline</text>
+    <!-- transcript -->
+    <text x="780" y="128" text-anchor="middle" fill="#eef3f9" font-size="15" font-weight="600">“ he collapsed and isn't breathing ”</text>
+    <!-- pills -->
+    <g font-size="11.5" font-weight="600">
+      <rect x="664" y="148" width="96" height="26" rx="13" fill="#0f1722" stroke="#33455a"/><text x="712" y="165" text-anchor="middle" fill="#fff">Cardiac arrest</text>
+      <rect x="768" y="148" width="74" height="26" rx="13" fill="#0f1722" stroke="#232f3f"/><circle cx="782" cy="161" r="4" fill="#35d6a0"/><text x="810" y="165" text-anchor="middle" fill="#35d6a0">routine</text>
+      <rect x="850" y="148" width="86" height="26" rx="13" fill="#0e2a22" stroke="#2c6b54"/><text x="893" y="165" text-anchor="middle" fill="#35d6a0">✓ verified</text>
+    </g>
+    <!-- engine -->
+    <rect x="664" y="186" width="272" height="78" rx="14" fill="#111a24" stroke="#1e2a37"/>
+    <text x="680" y="208" fill="#94a2b4" font-size="10.5" font-weight="600">VERIFIED AFTER 1 TRY · 16 DENOISING STEPS · 1.7S</text>
+    <rect x="680" y="220" width="18" height="18" rx="5" fill="#35d6a0"/>
+    <rect x="680" y="248" width="240" height="4" rx="2" fill="#1a2530"/><rect x="680" y="248" width="240" height="4" rx="2" fill="#5c9dff"/>
+    <!-- steps -->
+    <text x="666" y="290" fill="#94a2b4" font-size="10.5" font-weight="600">CARDIAC ARREST — WHAT TO DO NOW</text>
+    <g>
+      <rect x="664" y="300" width="272" height="48" rx="12" fill="#161f2b" stroke="#1e2a37"/><circle cx="686" cy="324" r="13" fill="#10202e"/><text x="686" y="329" text-anchor="middle" fill="#5c9dff" font-size="13" font-weight="700">1</text><text x="710" y="329" fill="#eef3f9" font-size="13.5">Call 911 and get an AED.</text>
+      <rect x="664" y="356" width="272" height="64" rx="12" fill="#161f2b" stroke="#1e2a37"/><circle cx="686" cy="380" r="13" fill="#10202e"/><text x="686" y="385" text-anchor="middle" fill="#5c9dff" font-size="13" font-weight="700">2</text><text x="710" y="377" fill="#eef3f9" font-size="13.5">Push hard &amp; fast, center of</text><text x="710" y="395" fill="#eef3f9" font-size="13.5">chest, 100–120/min, 2 in deep.</text>
+      <rect x="664" y="428" width="272" height="48" rx="12" fill="#161f2b" stroke="#1e2a37"/><circle cx="686" cy="452" r="13" fill="#10202e"/><text x="686" y="457" text-anchor="middle" fill="#5c9dff" font-size="13" font-weight="700">3</text><text x="710" y="457" fill="#eef3f9" font-size="13.5">Let the chest recoil fully.</text>
+    </g>
+    <rect x="664" y="576" width="272" height="32" rx="11" fill="#e5484d"/><text x="800" y="597" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">📞  Call 911</text>
+  </g>
+
+  <text x="560" y="646" text-anchor="middle" fill="#5f6b7a" font-size="13">Easy case verifies on the first try and speaks instantly · hard cases escalate best-of-N, then fall back to the official protocol</text>
+</svg>
