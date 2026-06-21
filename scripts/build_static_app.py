@@ -104,7 +104,7 @@ def build():
     page = page.replace(
         '<p class="foot">Powered by <b>Google DiffusionGemma</b> · every step <b>checked against official protocols</b>.</p>',
         '<p class="foot">Browser demo · recognizer + official protocols run on‑device · '
-        '<a href="dashboard.html">see the live engine results →</a></p>')
+        '<a href="https://vnmoorthy.github.io/lifeline/dashboard.html">see the live engine results →</a></p>')
     page = page.replace("</body>", "<script>" + BROWSER + "</script></body>")
     out = os.path.join(BASE, "docs", "index.html")
     with open(out, "w") as f:
